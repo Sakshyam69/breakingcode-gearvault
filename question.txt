@@ -1,0 +1,236 @@
+
+ 
+
+2nd SIT Coursework - 01 Question paper			Year Long 2025 2026
+
+Module Code: 
+Module Title: 
+Module Leader:	CS6004NT
+
+Application Development
+
+Mr. Bikram Poudel (Islington College)/ Mr. Kushal Tamang (Itahari International College)
+
+
+Coursework Type:	Group
+Coursework Weight:	This coursework accounts for 30% of the overall module grades.
+
+Submission Date:	Week 28 (Wednesday, May 20, 2026)
+Coursework given out:	Week 22 (Thursday, April 2, 2026)
+Deliverables:	1.	Documentation:
+o	Report (PDF format)
+2.	Development:
+o	C#.NET Project Repository (Zip file)
+o	Published App (Optional)
+Note: Exclude dot-folders (.git, .vs, .vscode) and build output folders (bin, obj) from project repository.
+
+Submission Instructions:	Submit the deliverables to the Itahari International College MST portal before 02:00 PM on the due date. You have two submission options:
+●	Option 1: Upload the zip file containing all deliverables.
+●	Option 2: If the first option is not feasible, submit only the report. Ensure the report includes a link to access the Development Deliverables.
+File Naming Convention: 
+<London met Id> <Name>.<pdf|zip>
+Eg. 22016032 Aaryan Jha.zip
+
+Warning:	London Metropolitan University and Itahari International College take plagiarism very seriously. Offenders will be dealt with sternly.
+
+
+© London Metropolitan University 
+PLAGIARISM
+
+You are reminded that there exist regulations concerning plagiarism. Extracts from these regulations are printed overleaf. Please sign below to say that you have read and understand these extracts:
+Extracts from University Regulations on Cheating, Plagiarism and Collusion
+
+Section 2.3: “The following broad types of offence can be identified and are provided as indicative examples ….
+(i)	Cheating: including taking unauthorised material into an examination; consulting unauthorised material outside the examination hall during the examination; obtaining an unseen examination paper in advance of the examination; copying from another examinee; using an unauthorised calculator during the examination or storing unauthorised material in the memory of a programmable calculator which is taken into the examination; copying coursework.
+(ii)	Falsifying data in experimental results.
+(iii)	Personation, where a substitute takes an examination or test on behalf of the candidate. Both candidate and substitute may be guilty of an offence under these Regulations.
+(iv)	Bribery or attempted bribery of a person thought to have some influence on the candidate’s assessment.
+(v)	Collusion to present joint work as the work solely of one individual.
+(vi)	Plagiarism, where the work or ideas of another are presented as the candidate’s own.
+(vii)	Other conduct calculated to secure an advantage on assessment.
+(viii)	Assisting in any of the above.
+Some notes on what this means for students:
+
+1.	Copying another student's work is an offence, whether from a copy on paper or from a computer file, and in whatever form the intellectual property being copied takes, including text, mathematical notation, and computer programs.
+2.	Taking extracts from published sources without attribution is an offence. To quote ideas, sometimes using extracts, is generally to be encouraged. Quoting ideas is achieved by stating an author's argument and attributing it, perhaps by quoting, immediately in the text, his or her name and year of publication, e.g. “e = mc2 (Einstein 1905)". A reference section at the end of your work should then list all such references in alphabetical order of authors' surnames. (There are variations on this referencing system which your tutors may prefer you to use.) If you wish to quote a paragraph or so from published work then indent the quotation on both left and right margins, using an italic font where practicable, and introduce the quotation with an attribution. 
+CONTRACT CHEATING
+
+Contract cheating (also known as assessment outsourcing, commissioning, or ghost writing) is when someone seeks out another party, or AI generator service, to produce work or buy an essay or assignment, either already written or specifically written for them or the assignment to submit as their own piece of work. 
+Contract cheating undermines the integrity of the academic process and devalues the qualifications awarded by the university. Students are reminded that academic integrity is a fundamental principle of our institution. Engaging in contract cheating not only impacts the individual’s academic record but also the reputation of the university.
+Students are encouraged to seek support if they are struggling with their coursework. The university offers a range of resources, including academic counselling, tutoring services, and workshops on study skills and time management. Utilizing these resources can help students achieve their academic goals without resorting to dishonest practices.
+
+Penalty:
+
+●	Failure in the Module: The student must re-register for the same module, and the re-registered module will be capped at a bare pass.
+
+●	Ineligibility to Continue on the Course: Where re-registration of the same module, or a suitable alternative, is not permissible, the student will not be able to continue the course. Additionally, the following penalty will be applied to the student’s final award:
+
+o	Undergraduate Honors: The student’s final classification will be reduced by one level.
+o	Unclassified Bachelors: Downgraded to Diploma in Higher Education.
+o	Foundation Degree: Distinction downgraded to Merit; Merit downgraded to Pass; Pass downgraded to Certificate in Higher Education.
+o	Masters: Distinction downgraded to Merit; Merit downgraded to Pass; Pass downgraded to Postgraduate Diploma.
+
+
+Reporting and Consequences:
+
+Instances of contract cheating will be thoroughly investigated, and students found guilty will face the penalties outlined above. It is the responsibility of every student to ensure that their work is their own and to avoid situations that could lead to accusations of academic misconduct.
+By adhering to these standards, students contribute to a fair and equitable academic environment, ensuring the value and recognition of their qualifications are maintained.
+ 
+SCENARIO
+
+The Vehicle Parts Selling and Inventory Management System is a platform designed to streamline operations for vehicles services and parts retail center. It supports three main user roles—Admin, Staff, and Customers each with suitable functionalities to improve the overall efficiency, customer service, and ensure proper and smooth inventory and financial management.
+The admin has the highest level of control in the system, including the registration and managing of staff, handle the vendor details, and view the overall inventory. They can add, edit, or delete vehicle parts, create invoices of purchase from vendors, and maintain the accurate financial records through reports that are generated automatically. The admin can also evaluate business performance by reviewing financial and inventory reports, ensuring informed decision-making and long-term planning.
+Staff members interact directly with customers by registering them in the system and recording their vehicle details. They handle part sales, create and email invoices, and access customer histories such as past purchases and vehicle information. Using built-in search features, staff can locate customers by name, phone number, ID, or vehicle number. They can also generate customer-focused reports to identify top spenders, regular customers, and those with overdue credit payments, enabling better service and follow-up.
+Customers can self-register through the system and access a range of self-service features. They can learn about the Vehicle Service Center, book service appointments, submit reviews, and request unavailable parts. The system allows them to view their complete service and purchase history. An integrated Artificial Intelligence (AI) analyzes their vehicle’s condition and usage patterns to predict potential part failures, alerting them in advance. Additionally, the system automatically notifies the admin when any part stock falls below 10 units and sends email reminders to customers with unpaid credit balances overdue by more than one month. 
+TASK
+
+The deliverables are outlined on the first page. Review the provided scenario and analyse it to extract all relevant requirements. For reference, the fixed requirements are detailed in the marking scheme below.
+You are tasked with developing a C#.NET software application based on the given scenario. Additionally, clarify your contribution according to the project type (i.e., individual or group).
+After completing the application, ensure it is thoroughly documented. Refer to the marking scheme for documentation requirements and review the "Things to Remember" section for further guidance.
+ 
+THINGS TO REMEMBER
+
+1.	Plagiarism:
+a.	Plagiarism is grounds for failure and applies to deliverables. All parties involved will be penalized.
+b.	Code-level plagiarism is prohibited. Always provide proper attribution for any borrowed code.
+2.	Documentation:
+a.	Development without accompanying documentation (and vice versa) is not allowed and will result in failure.
+3.	Group Projects:
+a.	Groups can have up to 5 members. Only the group leader is responsible for submission.
+4.	Frameworks:
+a.	Any framework under C#.NET is permitted.
+5.	Deployment:
+a.	Deploying or publishing the completed application is encouraged.
+6.	Architectural Patterns:
+a.	Following well-known architectural patterns is encouraged.
+7.	Non-Functional Requirements:
+a.	Addressing non-functional requirements such as security, performance, scalability, compatibility, and usability will enhance your project’s evaluation.
+8.	Development Tools:
+a.	Using project templates, libraries, packages, or modules to simplify the development process is encouraged, provided you justify their use.
+9.	Version Control:
+a.	Use version control systems (e.g., Git) to manage your codebase. Regular commits and clear commit messages are important.
+10.	User Experience (UX):
+a.	Pay attention to the user interface (UI) and user experience (UX) design. An intuitive and user-friendly application will positively impact your evaluation.
+11.	Project Management:
+a.	Demonstrate effective project management practices, including setting milestones, tracking progress, and managing resources. This will be reflected in your project review.
+12.	References:
+a.	Always provide references for any external resources used, such as libraries, remote repositories, articles, forums, or Q&A sites.
+
+
+
+
+"We welcome and encourage your creativity." 
+MARKING SCHEME
+
+
+Section	Topic	Full Marks
+(100)
+
+A	Development	90
+AA	Feature	60
+1	Admin can generate and view financial reports (daily, monthly, yearly)	4
+2	Admin can manage staff registration and roles	4
+3	Admin can perform parts management (purchase, edit, delete)	4
+4	Admin can create purchase invoices for stock updates	4
+5	Admin can manage vendor details (CRUD operations)	4
+6	Staff can register new customers with vehicle details	2
+7	Staff can sell vehicle parts and create sales invoices	4
+8	Staff can view customer details, history, and vehicle info	4
+9	Staff can generate customer-related reports (regulars, high spenders, pending credits)	4
+10	Staff can search customers by vehicle number, phone, ID, or name	4
+11	Staff can send invoices via email to customers	4
+12	Customers can self-register and manage profile & vehicle details	2
+13	Customers can book appointments, request unavailable parts, and review services	4
+14	Customers can view their purchase/service history	4
+15	System automatically notifies Admin for low stock (<10) and sends email reminders to customers with unpaid credits for more than 1 month	4
+16	Loyalty Program: Customers get 10% discount if they spend more than 5000 in a single purchase	4
+
+
+AB	Quality	30
+1	Code Readability (i.e. naming convention, comments, indentation, consistent formatting/styles, organization, error messages, logical flow, expressions)
+	5
+2	Code Efficiency (Data structures, algorithms, optimizations, redundant computations)
+	5
+3	Code Modularity (SoC, code reusability, SRP, abstraction, Dependency Injection (DI))
+	5
+4	Error Handling (exception handling, input validation, logging, graceful degradation, error propagation)
+	5
+5	Version Control (VCS (i.e. Git), meaningful commit messages, logical commit history, effective branching/merging, Tagging/Releases)
+	5
+6	User Experience (UX) (Design, Usability, Responsiveness, Consistency)
+	5
+
+B	Documentation	10
+1	Project Overview (purpose, scope, objectives)
+	1
+2	Features & Functionalities (key features, corresponding functionalities, visual guides)
+	4
+3	Proof of Work (PoW) (project artifacts: designs, UML diagrams, VCS repository, milestone chart, testing etc.)
+	2
+4	Individual Reflection(s) (roles & responsibilities, personal insights, challenges, learnings, growth, impact on future work, personal evaluation)
+	2
+5	Conclusion (objective restatement, implications, recommendations, findings, limitations, future research & development, concluding statement)
+	1
+
+
+Coursework Milestones:
+Pre–Milestone (Week 23 – April 9, 2026)
+Within one week of the coursework release, each group must:
+●	Divide tasks among all group members
+Example:
+o	Member 1: Feature 1, Feature 2, Feature 5 
+o	Member 2: Feature 3, Feature 4, Feature 6 
+●	Create and share GitHub repositories 
+o	One for Frontend 
+o	One for Backend 
+●	Submit required details via the provided form 
+o	Include task division and GitHub links 
+o	Only the group leader should submit the form
+Form Link: 
+
+
+
+Milestone 1 (Week 25 – April 29, 2026)
+Task 1: Project Setup
+●	Create an ASP.NET Core Web API project for the backend 
+●	Create a frontend project using any framework of your choice 
+
+Task 2: Feature Development
+●	Implement at least 10 features (combined frontend + backend) 
+●	Each group member must complete at least 2 features (for a group of 5) 
+●	Ensure all progress is regularly pushed to GitHub 
+
+Task 3: Report Submission
+Your report must include the following sections:
+
+a) Project Overview
+●	Purpose 
+●	Scope 
+●	Objectives 
+
+b) Technology Stack
+●	Frameworks: (e.g., ASP.NET Core, Entity Framework Core) 
+●	External Libraries: (e.g., AutoMapper, Dapper, Autofac, MediatR, etc. — if used) 
+●	Database: PostgreSQL 
+●	Deployment: Optional 
+
+c) Features and Functionalities
+●	Feature Completion Status 
+o	Clearly indicate: Completed / Pending 
+●	Completed Features 
+o	List all implemented features 
+o	Include API endpoints with descriptions 
+▪	Example: /foods?sortBy=price – Retrieves food items sorted by price 
+o	Attach screenshots as evidence 
+
+d) Proof of Work (PoW)
+●	Data Modeling 
+o	Include an ER Diagram (ERD) 
+
+e) Individual Reflection
+●	Clearly describe: 
+o	Task division among group members 
+
+
+Note: Additional milestones may be introduced later based on project progress and requirements.
+
