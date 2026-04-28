@@ -27,18 +27,9 @@ public sealed class RegisterCustomerRequest
 public sealed class CreateStaffRequest
 {
     [Required]
-    [StringLength(120, MinimumLength = 2)]
-    public string FullName { get; set; } = string.Empty;
-
-    [Required]
     [EmailAddress]
     [StringLength(180)]
     public string Email { get; set; } = string.Empty;
-
-    [Required]
-    [Phone]
-    [StringLength(30)]
-    public string Phone { get; set; } = string.Empty;
 
     [Required]
     [StringLength(100, MinimumLength = 8)]

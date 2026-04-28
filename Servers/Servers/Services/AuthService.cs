@@ -129,10 +129,12 @@ public sealed class AuthService : IAuthService
         CreateStaffRequest request,
         CancellationToken cancellationToken)
     {
+        var defaultFullName = request.Email.Split('@', 2)[0];
+
         var user = await CreateUserAsync(
-            request.FullName,
+            defaultFullName,
             request.Email,
-            request.Phone,
+            string.Empty,
             request.Password,
             UserRole.Staff,
             cancellationToken);

@@ -26,7 +26,7 @@ function App() {
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route
-          path="/admin"
+          path="/admin/*"
           element={
             <ProtectedRoute allowedRoles={['Admin']}>
               <AdminPage />

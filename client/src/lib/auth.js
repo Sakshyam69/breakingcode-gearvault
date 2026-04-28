@@ -34,7 +34,11 @@ export function getDashboardPath(role) {
     return '/staff'
   }
 
-  return '/customer'
+  if (normalizedRole === 'customer') {
+    return '/customer'
+  }
+
+  return '/login'
 }
 
 export async function loginUser(credentials) {
@@ -43,6 +47,17 @@ export async function loginUser(credentials) {
 
 export async function registerCustomer(customer) {
   return sendAuthRequest('/api/auth/register/customer', customer)
+}
+
+export async function createStaffAccount(staff) {
+  return sendAuthenticatedRequest('/api/auth/staff', {
+    method: 'POST',
+    body: JSON.stringify(staff),
+  })
+}
+
+export async function getUsers() {
+  return sendAuthenticatedRequest('/api/auth/users')
 }
 
 async function sendAuthRequest(path, body) {
@@ -61,5 +76,26 @@ async function sendAuthRequest(path, body) {
   }
 
   saveAuth(data)
+  return data
+}
+
+async function sendAuthenticatedRequest(path, options = {}) {
+  const auth = getStoredAuth()
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${auth?.token ?? ''}`,
+      ...options.headers,
+    },
+  })
+
+  const data = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new Error(data?.message ?? data?.title ?? 'Something went wrong. Please try again.')
+  }
+
   return data
 }

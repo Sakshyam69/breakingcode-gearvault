@@ -95,9 +95,7 @@ Request:
 
 ```json
 {
-  "fullName": "New Staff",
   "email": "new.staff@example.com",
-  "phone": "9812345679",
   "password": "Staff@12345"
 }
 ```
