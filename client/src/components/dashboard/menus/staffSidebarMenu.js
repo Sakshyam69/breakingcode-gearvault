@@ -8,10 +8,10 @@ import {
 } from 'lucide-react'
 
 export const staffSidebarMenu = [
-  { label: 'Dashboard', to: '/staff', icon: LayoutDashboard, active: true },
-  { label: 'Customers', to: '/staff', icon: Search },
-  { label: 'Register Customer', to: '/staff', icon: UserPlus },
-  { label: 'Sales Invoices', to: '/staff', icon: ReceiptText },
-  { label: 'Bookings', to: '/staff', icon: CalendarCheck },
-  { label: 'Settings', to: '/staff', icon: Settings },
+  { label: 'Dashboard', to: '/staff', icon: LayoutDashboard },
+  { label: 'Customers', to: '/staff/customers', icon: Search },
+  { label: 'Register Customer', to: '/staff/register-customer', icon: UserPlus },
+  { label: 'Sales Invoices', to: '/staff/sales-invoices', icon: ReceiptText },
+  { label: 'Bookings', to: '/staff/bookings', icon: CalendarCheck },
+  { label: 'Settings', to: '/staff/settings', icon: Settings },
 ]

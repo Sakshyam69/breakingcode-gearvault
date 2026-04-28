@@ -3,7 +3,7 @@ import { Eye, Lock, Mail, Phone, User, UserPlus } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authImage } from '../assets/assets'
 import { useAuthPageTransition } from '../hooks/useAuthPageTransition'
-import { getDashboardPath, registerCustomer } from '../lib/auth'
+import { getPostAuthPath, registerCustomer } from '../lib/auth'
 
 export function SignupPage() {
   const navigate = useNavigate()
@@ -37,7 +37,7 @@ export function SignupPage() {
         password: formData.password,
       })
 
-      navigate(getDashboardPath(auth.user.role), { replace: true })
+      navigate(getPostAuthPath(auth.user), { replace: true })
     } catch (exception) {
       setError(exception.message)
     } finally {

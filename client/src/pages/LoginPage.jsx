@@ -3,7 +3,7 @@ import { Eye, Lock, LogIn, Mail } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authImage } from '../assets/assets'
 import { useAuthPageTransition } from '../hooks/useAuthPageTransition'
-import { getDashboardPath, loginUser } from '../lib/auth'
+import { getPostAuthPath, loginUser } from '../lib/auth'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -22,7 +22,7 @@ export function LoginPage() {
 
     try {
       const auth = await loginUser(formData)
-      navigate(getDashboardPath(auth.user.role), { replace: true })
+      navigate(getPostAuthPath(auth.user), { replace: true })
     } catch (exception) {
       setError(exception.message)
     } finally {

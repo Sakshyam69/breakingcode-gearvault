@@ -8,10 +8,10 @@ import {
 } from 'lucide-react'
 
 export const customerSidebarMenu = [
-  { label: 'Dashboard', to: '/customer', icon: LayoutDashboard, active: true },
-  { label: 'Vehicles', to: '/customer', icon: Car },
-  { label: 'Bookings', to: '/customer', icon: CalendarCheck },
-  { label: 'Part Requests', to: '/customer', icon: PackageSearch },
-  { label: 'History', to: '/customer', icon: History },
-  { label: 'Settings', to: '/customer', icon: Settings },
+  { label: 'Dashboard', to: '/customer', icon: LayoutDashboard },
+  { label: 'Vehicles', to: '/customer/vehicles', icon: Car },
+  { label: 'Bookings', to: '/customer/bookings', icon: CalendarCheck },
+  { label: 'Part Requests', to: '/customer/part-requests', icon: PackageSearch },
+  { label: 'History', to: '/customer/history', icon: History },
+  { label: 'Settings', to: '/customer/settings', icon: Settings },
 ]

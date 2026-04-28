@@ -7,6 +7,12 @@ public enum UserRole
     Customer
 }
 
+public enum AccountSetupStatus
+{
+    PendingSetup,
+    Complete
+}
+
 public sealed class User
 {
     public int Id { get; set; }
@@ -21,5 +27,9 @@ public sealed class User
 
     public UserRole Role { get; set; }
 
+    public AccountSetupStatus AccountSetupStatus { get; set; } = AccountSetupStatus.Complete;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public UserProfile? Profile { get; set; }
 }

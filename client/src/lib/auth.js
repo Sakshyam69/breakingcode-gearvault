@@ -41,6 +41,14 @@ export function getDashboardPath(role) {
   return '/login'
 }
 
+export function isAccountSetupPending(user) {
+  return user?.accountSetupStatus === 'PendingSetup'
+}
+
+export function getPostAuthPath(user) {
+  return getDashboardPath(user?.role)
+}
+
 export async function loginUser(credentials) {
   return sendAuthRequest('/api/auth/login', credentials)
 }
@@ -58,6 +66,75 @@ export async function createStaffAccount(staff) {
 
 export async function getUsers() {
   return sendAuthenticatedRequest('/api/auth/users')
+}
+
+export async function getCurrentUser() {
+  const user = await sendAuthenticatedRequest('/api/auth/me')
+  const currentAuth = getStoredAuth()
+
+  if (currentAuth?.token) {
+    saveAuth({
+      ...currentAuth,
+      user,
+    })
+  }
+
+  return user
+}
+
+export async function getCurrentProfile() {
+  return sendAuthenticatedRequest('/api/profile/me')
+}
+
+export async function updateProfile(profile) {
+  const data = await sendAuthenticatedRequest('/api/profile/me', {
+    method: 'PUT',
+    body: JSON.stringify(profile),
+  })
+
+  if (data?.token && data?.user) {
+    saveAuth(data)
+  }
+
+  return data
+}
+
+export async function completeAccountSetup(profile) {
+  const data = await sendAuthenticatedRequest('/api/profile/complete-setup', {
+    method: 'POST',
+    body: JSON.stringify(profile),
+  })
+  const currentAuth = getStoredAuth()
+
+  if (data?.token && data?.user) {
+    saveAuth(data)
+    return data
+  }
+
+  const responseUser = data?.user ?? (data?.role ? data : null)
+  const updatedAuth = {
+    ...currentAuth,
+    user: responseUser ? {
+      ...currentAuth?.user,
+      ...responseUser,
+    } : {
+      ...currentAuth?.user,
+      accountSetupStatus: 'Complete',
+    },
+  }
+
+  saveAuth(updatedAuth)
+  return updatedAuth
+}
+
+export async function uploadProfileImage(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  return sendAuthenticatedRequest('/api/uploads/profile-image', {
+    method: 'POST',
+    body: formData,
+  })
 }
 
 async function sendAuthRequest(path, body) {
@@ -81,11 +158,12 @@ async function sendAuthRequest(path, body) {
 
 async function sendAuthenticatedRequest(path, options = {}) {
   const auth = getStoredAuth()
+  const isFormData = options.body instanceof FormData
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
       Authorization: `Bearer ${auth?.token ?? ''}`,
       ...options.headers,
     },

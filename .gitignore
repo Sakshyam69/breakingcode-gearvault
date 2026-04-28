@@ -17,6 +17,14 @@ dist/
 # Logs
 *.log
 
+# Local environment variables
+.env
+.env.*
+!.env.example
+Servers/Servers/.env
+Servers/Servers/.env.*
+!Servers/Servers/.env.example
+
 # OS files
 .DS_Store
 Thumbs.db

@@ -26,13 +26,17 @@ public sealed class EfUserRepository : IUserRepository
 
     public Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        return _db.Users.FirstOrDefaultAsync(user => user.Id == id, cancellationToken);
+        return _db.Users
+            .Include(user => user.Profile)
+            .FirstOrDefaultAsync(user => user.Id == id, cancellationToken);
     }
 
     public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
     {
         var normalizedEmail = email.Trim().ToLower();
-        return _db.Users.FirstOrDefaultAsync(user => user.Email.ToLower() == normalizedEmail, cancellationToken);
+        return _db.Users
+            .Include(user => user.Profile)
+            .FirstOrDefaultAsync(user => user.Email.ToLower() == normalizedEmail, cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<User>> GetAllAsync(CancellationToken cancellationToken)

@@ -120,6 +120,7 @@ public sealed class AuthService : IAuthService
             request.Phone,
             request.Password,
             UserRole.Customer,
+            AccountSetupStatus.Complete,
             cancellationToken);
 
         return BuildAuthResponse(user);
@@ -137,6 +138,7 @@ public sealed class AuthService : IAuthService
             string.Empty,
             request.Password,
             UserRole.Staff,
+            AccountSetupStatus.PendingSetup,
             cancellationToken);
 
         return BuildAuthResponse(user);
@@ -171,6 +173,7 @@ public sealed class AuthService : IAuthService
         string phone,
         string password,
         UserRole role,
+        AccountSetupStatus accountSetupStatus,
         CancellationToken cancellationToken)
     {
         var existingUser = await _users.GetByEmailAsync(email, cancellationToken);
@@ -185,7 +188,8 @@ public sealed class AuthService : IAuthService
             Email = email.Trim().ToLowerInvariant(),
             Phone = phone.Trim(),
             PasswordHash = _passwordHasher.Hash(password),
-            Role = role
+            Role = role,
+            AccountSetupStatus = accountSetupStatus
         };
 
         return await _users.AddAsync(user, cancellationToken);
@@ -205,6 +209,23 @@ public sealed class AuthService : IAuthService
             user.Email,
             user.Phone,
             user.Role,
+            user.AccountSetupStatus,
+            ToProfileResponse(user.Profile),
             user.CreatedAt);
+    }
+
+    private static UserProfileResponse? ToProfileResponse(UserProfile? profile)
+    {
+        return profile is null
+            ? null
+            : new UserProfileResponse(
+                profile.Address,
+                profile.City,
+                profile.DateOfBirth,
+                profile.Gender,
+                profile.ProfileImageUrl,
+                profile.EmergencyContactPhone,
+                profile.CreatedAt,
+                profile.UpdatedAt);
     }
 }

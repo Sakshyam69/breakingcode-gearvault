@@ -4,10 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Npgsql;
 using Servers.Authentication;
+using Servers.Configuration;
 using Servers.Data;
 using Servers.Models;
 using Servers.Repositories;
 using Servers.Services;
+
+LoadDotEnv();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,12 +66,14 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.Configure<AuthTokenOptions>(builder.Configuration.GetSection(AuthTokenOptions.SectionName));
+builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection(CloudinaryOptions.SectionName));
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(GetDatabaseConnectionString(builder.Configuration));
 });
 builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 builder.Services.AddSingleton<IAuthTokenService, HmacAuthTokenService>();
+builder.Services.AddHttpClient<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services
@@ -101,6 +106,70 @@ app.MapControllers();
 
 app.Run();
 
+static void LoadDotEnv()
+{
+    var currentDirectory = Directory.GetCurrentDirectory();
+    var candidatePaths = new[]
+    {
+        Path.Combine(currentDirectory, ".env"),
+        Path.Combine(currentDirectory, "Servers", "Servers", ".env"),
+        Path.Combine(AppContext.BaseDirectory, ".env")
+    };
+
+    var envPath = candidatePaths.FirstOrDefault(File.Exists);
+    if (envPath is null)
+    {
+        return;
+    }
+
+    foreach (var rawLine in File.ReadAllLines(envPath))
+    {
+        var line = rawLine.Trim();
+        if (line.Length == 0 || line.StartsWith('#'))
+        {
+            continue;
+        }
+
+        var separatorIndex = line.IndexOf('=');
+        if (separatorIndex <= 0)
+        {
+            continue;
+        }
+
+        var key = NormalizeEnvKey(line[..separatorIndex].Trim());
+        var value = line[(separatorIndex + 1)..].Trim();
+        if (value.Length >= 2
+            && ((value[0] == '"' && value[^1] == '"')
+                || (value[0] == '\'' && value[^1] == '\'')))
+        {
+            value = value[1..^1];
+        }
+
+        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(key)))
+        {
+            Environment.SetEnvironmentVariable(key, value);
+        }
+    }
+}
+
+static string NormalizeEnvKey(string key)
+{
+    const string authTokenPrefix = "AuthToken_";
+    const string cloudinaryPrefix = "Cloudinary_";
+
+    if (key.StartsWith(authTokenPrefix, StringComparison.Ordinal))
+    {
+        return $"AuthToken__{key[authTokenPrefix.Length..]}";
+    }
+
+    if (key.StartsWith(cloudinaryPrefix, StringComparison.Ordinal))
+    {
+        return $"Cloudinary__{key[cloudinaryPrefix.Length..]}";
+    }
+
+    return key;
+}
+
 static string GetDatabaseConnectionString(IConfiguration configuration)
 {
     var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -121,6 +190,11 @@ static string GetDatabaseConnectionString(IConfiguration configuration)
     }
 
     var uri = new Uri(databaseUrl);
+    if (IsPlaceholderDatabaseUrl(uri))
+    {
+        throw new InvalidOperationException("DATABASE_URL still contains placeholder values. Put your real Neon/Postgres connection string in Servers/Servers/.env.");
+    }
+
     var userInfo = uri.UserInfo.Split(':', 2);
     var builder = new NpgsqlConnectionStringBuilder
     {
@@ -134,6 +208,19 @@ static string GetDatabaseConnectionString(IConfiguration configuration)
     };
 
     return builder.ConnectionString;
+}
+
+static bool IsPlaceholderDatabaseUrl(Uri uri)
+{
+    var userInfo = uri.UserInfo.Split(':', 2);
+    var username = userInfo.Length > 0 ? Uri.UnescapeDataString(userInfo[0]) : string.Empty;
+    var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty;
+    var database = uri.AbsolutePath.TrimStart('/');
+
+    return uri.Host.Equals("HOST", StringComparison.OrdinalIgnoreCase)
+        || username.Equals("USER", StringComparison.OrdinalIgnoreCase)
+        || password.Equals("PASSWORD", StringComparison.OrdinalIgnoreCase)
+        || database.Equals("DATABASE", StringComparison.OrdinalIgnoreCase);
 }
 
 static async Task InitializeDatabaseAsync(IServiceProvider services)

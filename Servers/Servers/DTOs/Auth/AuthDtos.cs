@@ -52,7 +52,19 @@ public sealed record UserResponse(
     string Email,
     string Phone,
     UserRole Role,
+    AccountSetupStatus AccountSetupStatus,
+    UserProfileResponse? Profile,
     DateTime CreatedAt);
+
+public sealed record UserProfileResponse(
+    string Address,
+    string City,
+    DateTime? DateOfBirth,
+    string Gender,
+    string ProfileImageUrl,
+    string EmergencyContactPhone,
+    DateTime CreatedAt,
+    DateTime? UpdatedAt);
 
 public sealed record AuthResponse(
     string Token,

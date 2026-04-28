@@ -34,7 +34,7 @@ function App() {
           }
         />
         <Route
-          path="/staff"
+          path="/staff/*"
           element={
             <ProtectedRoute allowedRoles={['Staff']}>
               <StaffPage />
@@ -42,7 +42,7 @@ function App() {
           }
         />
         <Route
-          path="/customer"
+          path="/customer/*"
           element={
             <ProtectedRoute allowedRoles={['Customer']}>
               <CustomerPage />

@@ -23,7 +23,7 @@ public sealed class AuthTokenOptions
 
     public string Audience { get; set; } = "Autocare.Client";
 
-    public string SecretKey { get; set; } = "development-only-change-this-secret-key";
+    public string SecretKey { get; set; } = string.Empty;
 
     public int ExpirationMinutes { get; set; } = 120;
 }
@@ -139,6 +139,11 @@ public sealed class HmacAuthTokenService : IAuthTokenService
 
     private string Sign(string value)
     {
+        if (string.IsNullOrWhiteSpace(_options.SecretKey))
+        {
+            throw new InvalidOperationException("Configure AuthToken_SecretKey in Servers/Servers/.env.");
+        }
+
         var key = Encoding.UTF8.GetBytes(_options.SecretKey);
         using var hmac = new HMACSHA256(key);
         return Base64UrlEncode(hmac.ComputeHash(Encoding.UTF8.GetBytes(value)));
