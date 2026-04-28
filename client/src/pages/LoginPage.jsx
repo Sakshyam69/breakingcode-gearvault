@@ -3,10 +3,40 @@ import { Eye, Lock, LogIn, Mail } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authImage } from '../assets/assets'
 import { useAuthPageTransition } from '../hooks/useAuthPageTransition'
+import { getDashboardPath, loginUser } from '../lib/auth'
 
 export function LoginPage() {
   const navigate = useNavigate()
   const { mediaRef, navigateWithAuthTransition, pageRef } = useAuthPageTransition('login')
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  })
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      const auth = await loginUser(formData)
+      navigate(getDashboardPath(auth.user.role), { replace: true })
+    } catch (exception) {
+      setError(exception.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  function handleChange(event) {
+    const { name, value } = event.target
+    setFormData((current) => ({
+      ...current,
+      [name]: value,
+    }))
+  }
 
   return (
     <main className="flex min-h-[calc(100vh-88px)] items-center justify-center bg-[var(--bg-primary)] px-6 py-10 text-[var(--text-primary)] [perspective:1400px]">
@@ -46,39 +76,42 @@ export function LoginPage() {
             Login to access your Autocare dashboard.
           </p>
 
-          <form className="space-y-5">
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <AuthField
               icon={Mail}
               label="Email Address"
+              name="email"
+              onChange={handleChange}
               placeholder="Enter your email"
+              required
               type="email"
+              value={formData.email}
             />
             <AuthField
               icon={Lock}
               label="Password"
+              name="password"
+              onChange={handleChange}
               placeholder="Enter your password"
+              required
               type="password"
               trailingIcon={Eye}
+              value={formData.password}
             />
 
-            <div className="flex items-center justify-between text-sm text-[var(--text-secondary)]">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" className="accent-[var(--primary)]" />
-                Remember me
-              </label>
-
-              <button className="text-[var(--primary)]" type="button">
-                Forgot password?
-              </button>
-            </div>
+            {error && (
+              <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {error}
+              </p>
+            )}
 
             <button
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--primary)] py-3 font-semibold transition hover:bg-[var(--primary-hover)]"
-              type="button"
-              onClick={() => navigate('/admin')}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--primary)] py-3 font-semibold transition hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={isSubmitting}
+              type="submit"
             >
               <LogIn size={18} />
-              Login
+              {isSubmitting ? 'Logging in...' : 'Login'}
             </button>
           </form>
 
@@ -98,7 +131,17 @@ export function LoginPage() {
   )
 }
 
-function AuthField({ icon: Icon, label, placeholder, type = 'text', trailingIcon: TrailingIcon }) {
+function AuthField({
+  icon: Icon,
+  label,
+  name,
+  onChange,
+  placeholder,
+  required = false,
+  type = 'text',
+  trailingIcon: TrailingIcon,
+  value,
+}) {
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === 'password'
   const inputType = isPassword && showPassword ? 'text' : type
@@ -110,8 +153,12 @@ function AuthField({ icon: Icon, label, placeholder, type = 'text', trailingIcon
         <Icon className="text-[var(--text-secondary)]" size={18} />
         <input
           className="w-full bg-transparent text-sm outline-none placeholder:text-[var(--text-muted)]"
+          name={name}
+          onChange={onChange}
           placeholder={placeholder}
+          required={required}
           type={inputType}
+          value={value}
         />
         {TrailingIcon && (
           <button

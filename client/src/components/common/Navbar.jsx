@@ -1,6 +1,7 @@
-import { User, UserPlus } from 'lucide-react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { LogOut, User, UserPlus } from 'lucide-react'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { logo } from '../../assets/assets'
+import { clearAuth, getDashboardPath, getStoredAuth } from '../../lib/auth'
 import { Button } from './Button'
 
 const publicLinks = [
@@ -19,8 +20,15 @@ const appLinks = [
 
 export function Navbar() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const auth = getStoredAuth()
   const isPublicPage = ['/', '/about', '/services', '/contact', '/login', '/signup', '/terms', '/privacy'].includes(location.pathname)
   const links = isPublicPage ? publicLinks : appLinks
+
+  function handleLogout() {
+    clearAuth()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <header className="fixed left-0 top-0 z-50 w-full border-b border-white/10 bg-black/40">
@@ -52,21 +60,39 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <Button
-            as={Link}
-            className="hidden gap-2 sm:flex"
-            to="/login"
-            variant="lightOutline"
-          >
-            <User size={18} />
-            Login
-          </Button>
-          <Button as={Link} className="gap-2" to="/signup" variant="danger">
-            <UserPlus size={18} />
-            Register
-          </Button>
-        </div>
+        {auth?.user ? (
+          <div className="flex items-center gap-2">
+            <Button
+              as={Link}
+              className="hidden gap-2 sm:flex"
+              to={getDashboardPath(auth.user.role)}
+              variant="lightOutline"
+            >
+              <User size={18} />
+              {auth.user.role}
+            </Button>
+            <Button className="gap-2" type="button" variant="danger" onClick={handleLogout}>
+              <LogOut size={18} />
+              Logout
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Button
+              as={Link}
+              className="hidden gap-2 sm:flex"
+              to="/login"
+              variant="lightOutline"
+            >
+              <User size={18} />
+              Login
+            </Button>
+            <Button as={Link} className="gap-2" to="/signup" variant="danger">
+              <UserPlus size={18} />
+              Register
+            </Button>
+          </div>
+        )}
       </div>
     </header>
   )

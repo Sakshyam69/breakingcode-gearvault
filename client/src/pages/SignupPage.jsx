@@ -3,10 +3,55 @@ import { Eye, Lock, Mail, Phone, User, UserPlus } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authImage } from '../assets/assets'
 import { useAuthPageTransition } from '../hooks/useAuthPageTransition'
+import { getDashboardPath, registerCustomer } from '../lib/auth'
 
 export function SignupPage() {
   const navigate = useNavigate()
   const { mediaRef, navigateWithAuthTransition, pageRef } = useAuthPageTransition('signup')
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+  })
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+    setError('')
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Password and confirm password must match.')
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const auth = await registerCustomer({
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+      })
+
+      navigate(getDashboardPath(auth.user.role), { replace: true })
+    } catch (exception) {
+      setError(exception.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  function handleChange(event) {
+    const { name, value } = event.target
+    setFormData((current) => ({
+      ...current,
+      [name]: value,
+    }))
+  }
 
   return (
     <main className="flex min-h-[calc(100vh-88px)] items-center justify-center bg-[var(--bg-primary)] px-6 py-10 text-[var(--text-primary)] [perspective:1400px]">
@@ -25,46 +70,65 @@ export function SignupPage() {
 
           <form
             className="grid grid-cols-1 gap-5 md:grid-cols-2"
-            onSubmit={(event) => {
-              event.preventDefault()
-              navigate('/login')
-            }}
+            onSubmit={handleSubmit}
           >
-            <AuthField icon={User} label="Full Name" placeholder="Enter your full name" />
+            <AuthField
+              icon={User}
+              label="Full Name"
+              name="fullName"
+              onChange={handleChange}
+              placeholder="Enter your full name"
+              required
+              value={formData.fullName}
+            />
             <AuthField
               icon={Mail}
               label="Email Address"
+              name="email"
+              onChange={handleChange}
               placeholder="Enter your email"
+              required
               type="email"
+              value={formData.email}
             />
-            <AuthField icon={Phone} label="Phone Number" placeholder="Enter phone number" />
-
-            <label className="block">
-              <span className="text-sm font-medium">Role</span>
-              <select
-                className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3 text-sm text-[var(--text-secondary)] outline-none"
-                defaultValue=""
-              >
-                <option value="" disabled>Select your role</option>
-                <option>Customer</option>
-                <option>Staff</option>
-              </select>
-            </label>
+            <AuthField
+              icon={Phone}
+              label="Phone Number"
+              name="phone"
+              onChange={handleChange}
+              placeholder="Enter phone number"
+              required
+              value={formData.phone}
+            />
 
             <AuthField
               icon={Lock}
               label="Password"
+              name="password"
+              onChange={handleChange}
               placeholder="Create password"
+              required
               type="password"
               trailingIcon={Eye}
+              value={formData.password}
             />
             <AuthField
               icon={Lock}
               label="Confirm Password"
+              name="confirmPassword"
+              onChange={handleChange}
               placeholder="Confirm password"
+              required
               type="password"
               trailingIcon={Eye}
+              value={formData.confirmPassword}
             />
+
+            {error && (
+              <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200 md:col-span-2">
+                {error}
+              </p>
+            )}
 
             <label className="flex flex-wrap items-center gap-2 text-sm text-[var(--text-secondary)] md:col-span-2">
               <input type="checkbox" className="accent-[var(--primary)]" required />
@@ -75,11 +139,12 @@ export function SignupPage() {
             </label>
 
             <button
-              className="flex items-center justify-center gap-2 rounded-lg bg-[var(--primary)] py-3 font-semibold transition hover:bg-[var(--primary-hover)] md:col-span-2"
+              className="flex items-center justify-center gap-2 rounded-lg bg-[var(--primary)] py-3 font-semibold transition hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-70 md:col-span-2"
+              disabled={isSubmitting}
               type="submit"
             >
               <UserPlus size={18} />
-              Create Account
+              {isSubmitting ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
 
@@ -122,7 +187,17 @@ export function SignupPage() {
   )
 }
 
-function AuthField({ icon: Icon, label, placeholder, type = 'text', trailingIcon: TrailingIcon }) {
+function AuthField({
+  icon: Icon,
+  label,
+  name,
+  onChange,
+  placeholder,
+  required = false,
+  type = 'text',
+  trailingIcon: TrailingIcon,
+  value,
+}) {
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === 'password'
   const inputType = isPassword && showPassword ? 'text' : type
@@ -134,8 +209,12 @@ function AuthField({ icon: Icon, label, placeholder, type = 'text', trailingIcon
         <Icon className="text-[var(--text-secondary)]" size={18} />
         <input
           className="w-full bg-transparent text-sm outline-none placeholder:text-[var(--text-muted)]"
+          name={name}
+          onChange={onChange}
           placeholder={placeholder}
+          required={required}
           type={inputType}
+          value={value}
         />
         {TrailingIcon && (
           <button

@@ -1,6 +1,42 @@
 @Servers_HostAddress = http://localhost:5223
 
-GET {{Servers_HostAddress}}/weatherforecast/
+POST {{Servers_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@autocare.local",
+  "password": "Admin@12345"
+}
+
+###
+
+GET {{Servers_HostAddress}}/api/auth/me
 Accept: application/json
+Authorization: Bearer {{authToken}}
+
+###
+
+POST {{Servers_HostAddress}}/api/auth/register/customer
+Content-Type: application/json
+
+{
+  "fullName": "New Customer",
+  "email": "new.customer@example.com",
+  "phone": "9812345678",
+  "password": "Customer@12345"
+}
+
+###
+
+POST {{Servers_HostAddress}}/api/auth/staff
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "fullName": "New Staff",
+  "email": "new.staff@example.com",
+  "phone": "9812345679",
+  "password": "Staff@12345"
+}
 
 ###

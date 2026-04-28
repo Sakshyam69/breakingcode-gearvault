@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { PageShell } from './components/common/PageShell'
+import { getDashboardPath, getStoredAuth } from './lib/auth'
 import { AboutPage } from './pages/AboutPage'
 import { ContactPage } from './pages/ContactPage'
 import { HomePage } from './pages/HomePage'
@@ -24,13 +25,48 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/staff" element={<StaffPage />} />
-        <Route path="/customer" element={<CustomerPage />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff"
+          element={
+            <ProtectedRoute allowedRoles={['Staff']}>
+              <StaffPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer"
+          element={
+            <ProtectedRoute allowedRoles={['Customer']}>
+              <CustomerPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
     </PageShell>
   )
+}
+
+function ProtectedRoute({ allowedRoles, children }) {
+  const auth = getStoredAuth()
+
+  if (!auth?.token || !auth?.user) {
+    return <Navigate replace to="/login" />
+  }
+
+  if (!allowedRoles.includes(auth.user.role)) {
+    return <Navigate replace to={getDashboardPath(auth.user.role)} />
+  }
+
+  return children
 }
 
 export default App
