@@ -92,6 +92,30 @@ export async function deleteVendor(vendorId) {
   })
 }
 
+export async function getParts() {
+  return sendAuthenticatedRequest('/api/parts')
+}
+
+export async function createPart(part) {
+  return sendAuthenticatedRequest('/api/parts', {
+    method: 'POST',
+    body: JSON.stringify(part),
+  })
+}
+
+export async function updatePart(partId, part) {
+  return sendAuthenticatedRequest(`/api/parts/${partId}`, {
+    method: 'PUT',
+    body: JSON.stringify(part),
+  })
+}
+
+export async function deletePart(partId) {
+  return sendAuthenticatedRequest(`/api/parts/${partId}`, {
+    method: 'DELETE',
+  })
+}
+
 export async function getCurrentUser() {
   const user = await sendAuthenticatedRequest('/api/auth/me')
   const currentAuth = getStoredAuth()

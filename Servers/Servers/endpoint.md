@@ -20,190 +20,53 @@ http://localhost:5223/swagger
 | Staff | `staff@autocare.local` | `Staff@12345` |
 | Customer | `customer@autocare.local` | `Customer@12345` |
 
-## Authentication
+## Endpoints
 
-### Login
+Use the `Authorization: Bearer <token>` header for every protected endpoint.
 
-`POST /api/auth/login`
+### Auth Endpoints
 
-Access: Public
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| POST | `http://localhost:5223/api/auth/login` | Public | Login with email and password. |
+| POST | `http://localhost:5223/api/auth/register/customer` | Public | Register a new customer account. |
+| POST | `http://localhost:5223/api/auth/staff` | Admin | Create a staff account. |
+| GET | `http://localhost:5223/api/auth/me` | Authenticated user | Get the currently logged-in user. |
+| GET | `http://localhost:5223/api/auth/users` | Admin | List all users. |
 
-Request:
+### Profile Endpoints
 
-```json
-{
-  "email": "admin@autocare.local",
-  "password": "Admin@12345"
-}
-```
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/profile/me` | Authenticated user | Get the current user's profile details. |
+| PUT | `http://localhost:5223/api/profile/me` | Authenticated user | Update the current user's profile details. |
+| POST | `http://localhost:5223/api/profile/complete-setup` | Authenticated user | Complete account setup and set a new password. |
 
-Response includes:
+### Upload Endpoints
 
-```json
-{
-  "token": "...",
-  "expiresAt": "2026-04-27T17:03:41Z",
-  "user": {
-    "id": 1,
-    "fullName": "System Admin",
-    "email": "admin@autocare.local",
-    "phone": "9800000000",
-    "role": "Admin",
-    "createdAt": "2026-04-27T15:03:14Z"
-  }
-}
-```
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| POST | `http://localhost:5223/api/uploads/profile-image` | Authenticated user | Upload a profile image file. |
 
-Use the returned token as:
+### Vendor Endpoints
 
-```http
-Authorization: Bearer <token>
-```
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/vendors` | Admin, Staff | List active vendors. |
+| GET | `http://localhost:5223/api/vendors/{vendorId}` | Admin, Staff | Get one active vendor by ID. |
+| POST | `http://localhost:5223/api/vendors` | Admin, Staff | Create a new vendor. |
+| PUT | `http://localhost:5223/api/vendors/{vendorId}` | Admin, Staff | Update an existing vendor. |
+| DELETE | `http://localhost:5223/api/vendors/{vendorId}` | Admin, Staff | Soft delete a vendor from the active vendor list. |
 
-In Swagger, click `Authorize` and paste only the token value.
+### Parts / Inventory Endpoints
 
-### Register Customer
-
-`POST /api/auth/register/customer`
-
-Access: Public
-
-Request:
-
-```json
-{
-  "fullName": "New Customer",
-  "email": "new.customer@example.com",
-  "phone": "9812345678",
-  "password": "Customer@12345"
-}
-```
-
-### Create Staff
-
-`POST /api/auth/staff`
-
-Access: Admin only
-
-Headers:
-
-```http
-Authorization: Bearer <admin-token>
-```
-
-Request:
-
-```json
-{
-  "email": "new.staff@example.com",
-  "password": "Staff@12345"
-}
-```
-
-### Current User
-
-`GET /api/auth/me`
-
-Access: Authenticated users
-
-Headers:
-
-```http
-Authorization: Bearer <token>
-```
-
-### List Users
-
-`GET /api/auth/users`
-
-Access: Admin only
-
-Headers:
-
-```http
-Authorization: Bearer <admin-token>
-```
-
-## Vendors
-
-Vendor records are used by purchase invoices and stock update workflows.
-
-### List Vendors
-
-`GET /api/vendors`
-
-Access: Admin or Staff
-
-Headers:
-
-```http
-Authorization: Bearer <admin-or-staff-token>
-```
-
-### Get Vendor
-
-`GET /api/vendors/{vendorId}`
-
-Access: Admin or Staff
-
-### Create Vendor
-
-`POST /api/vendors`
-
-Access: Admin or Staff
-
-Request:
-
-```json
-{
-  "name": "ABC Auto Parts",
-  "email": "sales@abcparts.example",
-  "phone": "9800000010",
-  "contactPerson": "Ramesh Shrestha",
-  "address": "Main Road",
-  "city": "Itahari",
-  "country": "Nepal",
-  "taxNumber": "PAN-123456",
-  "paymentTerms": "Net 30",
-  "bankName": "Nabil Bank",
-  "bankAccountNumber": "00123456789",
-  "notes": "Preferred supplier for filters and belts."
-}
-```
-
-### Update Vendor
-
-`PUT /api/vendors/{vendorId}`
-
-Access: Admin or Staff
-
-Request body is the same as create, with an additional `isActive` field:
-
-```json
-{
-  "name": "ABC Auto Parts",
-  "email": "sales@abcparts.example",
-  "phone": "9800000010",
-  "contactPerson": "Ramesh Shrestha",
-  "address": "Main Road",
-  "city": "Itahari",
-  "country": "Nepal",
-  "taxNumber": "PAN-123456",
-  "paymentTerms": "Net 30",
-  "bankName": "Nabil Bank",
-  "bankAccountNumber": "00123456789",
-  "notes": "Preferred supplier for filters and belts.",
-  "isActive": true
-}
-```
-
-### Delete Vendor
-
-`DELETE /api/vendors/{vendorId}`
-
-Access: Admin or Staff
-
-This performs a soft delete by setting `isActive` to `false`, so future purchase invoice history can still reference the vendor.
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/parts` | Admin, Staff | List active inventory parts. |
+| GET | `http://localhost:5223/api/parts/{partId}` | Admin, Staff | Get one active part by ID. |
+| POST | `http://localhost:5223/api/parts` | Admin | Create a new inventory part with part details. |
+| PUT | `http://localhost:5223/api/parts/{partId}` | Admin | Update an existing inventory part and part details. |
+| DELETE | `http://localhost:5223/api/parts/{partId}` | Admin | Soft delete a part from active inventory. |
 
 ## EF Core Commands
 

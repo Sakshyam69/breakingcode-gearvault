@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom'
+import { PartManagement } from '../../components/admin/PartManagement'
 import { StaffManagement } from '../../components/admin/StaffManagement'
 import { VendorManagement } from '../../components/admin/VendorManagement'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
@@ -15,7 +16,7 @@ const adminPages = {
   '/admin/inventory': {
     title: 'Inventory',
     subtitle: 'Manage vehicle parts, stock quantities, pricing, and part details.',
-    content: <UnderDevelopment role="Admin inventory" />,
+    content: <PartManagement />,
   },
   '/admin/vendors': {
     title: 'Vendors',
