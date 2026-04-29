@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom'
 import { StaffManagement } from '../../components/admin/StaffManagement'
+import { VendorManagement } from '../../components/admin/VendorManagement'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { adminSidebarMenu } from '../../components/dashboard/menus/adminSidebarMenu'
 import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
@@ -18,8 +19,8 @@ const adminPages = {
   },
   '/admin/vendors': {
     title: 'Vendors',
-    subtitle: 'Manage vendor records used for purchase invoices and stock updates.',
-    content: <UnderDevelopment role="Admin vendors" />,
+    subtitle: '',
+    content: <VendorManagement />,
   },
   '/admin/staff-management': {
     title: 'Staff Management',

@@ -248,11 +248,13 @@ export function DashboardLayout({
         </header>
 
         <main className="min-h-[calc(100vh-76px)] bg-white px-4 py-6 text-slate-950 md:px-6 lg:px-8">
-          <section className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
-            <div className="max-w-3xl">
-              <p className="text-sm font-bold text-slate-600">{subtitle}</p>
-            </div>
-          </section>
+          {subtitle && (
+            <section className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
+              <div className="max-w-3xl">
+                <p className="text-sm font-bold text-slate-600">{subtitle}</p>
+              </div>
+            </section>
+          )}
 
           <div className="mt-6">{children}</div>
         </main>

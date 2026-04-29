@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom'
+import { VendorManagement } from '../../components/admin/VendorManagement'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { staffSidebarMenu } from '../../components/dashboard/menus/staffSidebarMenu'
 import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
@@ -19,6 +20,11 @@ const staffPages = {
     title: 'Register Customer',
     subtitle: 'Create new customer profiles for service and sales workflows.',
     content: <UnderDevelopment role="Staff customer registration" />,
+  },
+  '/staff/vendors': {
+    title: 'Vendors',
+    subtitle: '',
+    content: <VendorManagement />,
   },
   '/staff/sales-invoices': {
     title: 'Sales Invoices',

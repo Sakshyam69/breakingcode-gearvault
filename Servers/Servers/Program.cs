@@ -76,6 +76,7 @@ builder.Services.AddSingleton<IAuthTokenService, HmacAuthTokenService>();
 builder.Services.AddHttpClient<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services
     .AddAuthentication(AuthSchemes.Bearer)
     .AddScheme<AuthenticationSchemeOptions, HmacTokenAuthenticationHandler>(AuthSchemes.Bearer, options => { });

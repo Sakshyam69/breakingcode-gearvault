@@ -68,6 +68,30 @@ export async function getUsers() {
   return sendAuthenticatedRequest('/api/auth/users')
 }
 
+export async function getVendors() {
+  return sendAuthenticatedRequest('/api/vendors')
+}
+
+export async function createVendor(vendor) {
+  return sendAuthenticatedRequest('/api/vendors', {
+    method: 'POST',
+    body: JSON.stringify(vendor),
+  })
+}
+
+export async function updateVendor(vendorId, vendor) {
+  return sendAuthenticatedRequest(`/api/vendors/${vendorId}`, {
+    method: 'PUT',
+    body: JSON.stringify(vendor),
+  })
+}
+
+export async function deleteVendor(vendorId) {
+  return sendAuthenticatedRequest(`/api/vendors/${vendorId}`, {
+    method: 'DELETE',
+  })
+}
+
 export async function getCurrentUser() {
   const user = await sendAuthenticatedRequest('/api/auth/me')
   const currentAuth = getStoredAuth()

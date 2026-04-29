@@ -124,6 +124,87 @@ Headers:
 Authorization: Bearer <admin-token>
 ```
 
+## Vendors
+
+Vendor records are used by purchase invoices and stock update workflows.
+
+### List Vendors
+
+`GET /api/vendors`
+
+Access: Admin or Staff
+
+Headers:
+
+```http
+Authorization: Bearer <admin-or-staff-token>
+```
+
+### Get Vendor
+
+`GET /api/vendors/{vendorId}`
+
+Access: Admin or Staff
+
+### Create Vendor
+
+`POST /api/vendors`
+
+Access: Admin or Staff
+
+Request:
+
+```json
+{
+  "name": "ABC Auto Parts",
+  "email": "sales@abcparts.example",
+  "phone": "9800000010",
+  "contactPerson": "Ramesh Shrestha",
+  "address": "Main Road",
+  "city": "Itahari",
+  "country": "Nepal",
+  "taxNumber": "PAN-123456",
+  "paymentTerms": "Net 30",
+  "bankName": "Nabil Bank",
+  "bankAccountNumber": "00123456789",
+  "notes": "Preferred supplier for filters and belts."
+}
+```
+
+### Update Vendor
+
+`PUT /api/vendors/{vendorId}`
+
+Access: Admin or Staff
+
+Request body is the same as create, with an additional `isActive` field:
+
+```json
+{
+  "name": "ABC Auto Parts",
+  "email": "sales@abcparts.example",
+  "phone": "9800000010",
+  "contactPerson": "Ramesh Shrestha",
+  "address": "Main Road",
+  "city": "Itahari",
+  "country": "Nepal",
+  "taxNumber": "PAN-123456",
+  "paymentTerms": "Net 30",
+  "bankName": "Nabil Bank",
+  "bankAccountNumber": "00123456789",
+  "notes": "Preferred supplier for filters and belts.",
+  "isActive": true
+}
+```
+
+### Delete Vendor
+
+`DELETE /api/vendors/{vendorId}`
+
+Access: Admin or Staff
+
+This performs a soft delete by setting `isActive` to `false`, so future purchase invoice history can still reference the vendor.
+
 ## EF Core Commands
 
 Run these from this folder:
