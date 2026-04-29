@@ -33,14 +33,6 @@ public sealed class DuplicatePartNumberException : Exception
     }
 }
 
-public sealed class InvalidPartVendorException : Exception
-{
-    public InvalidPartVendorException()
-        : base("Selected vendor was not found.")
-    {
-    }
-}
-
 public sealed class PartService : IPartService
 {
     private readonly AppDbContext _db;
@@ -55,7 +47,6 @@ public sealed class PartService : IPartService
         var parts = await _db.Parts
             .AsNoTracking()
             .Include(part => part.Details)
-            .Include(part => part.Vendor)
             .Include(part => part.CreatedByUser)
             .Include(part => part.UpdatedByUser)
             .Where(part => part.IsActive)
@@ -70,7 +61,6 @@ public sealed class PartService : IPartService
         var part = await _db.Parts
             .AsNoTracking()
             .Include(current => current.Details)
-            .Include(current => current.Vendor)
             .Include(current => current.CreatedByUser)
             .Include(current => current.UpdatedByUser)
             .FirstOrDefaultAsync(current => current.PartId == partId && current.IsActive, cancellationToken);
@@ -85,7 +75,6 @@ public sealed class PartService : IPartService
     {
         var partNumber = NormalizePartNumber(request.PartNumber);
         await EnsurePartNumberIsAvailableAsync(partNumber, null, cancellationToken);
-        await EnsureVendorExistsAsync(request.VendorId, cancellationToken);
 
         var part = new Part
         {
@@ -93,11 +82,9 @@ public sealed class PartService : IPartService
             PartNumber = partNumber,
             Brand = request.Brand.Trim(),
             Category = request.Category.Trim(),
-            UnitCost = request.UnitCost,
             SellingPrice = request.SellingPrice,
             QuantityInStock = request.QuantityInStock,
             ReorderLevel = request.ReorderLevel,
-            VendorId = request.VendorId,
             CreatedByUserId = userId,
             CreatedAt = DateTime.UtcNow,
             Details = new PartDetails()
@@ -129,17 +116,14 @@ public sealed class PartService : IPartService
 
         var partNumber = NormalizePartNumber(request.PartNumber);
         await EnsurePartNumberIsAvailableAsync(partNumber, partId, cancellationToken);
-        await EnsureVendorExistsAsync(request.VendorId, cancellationToken);
 
         part.Name = request.Name.Trim();
         part.PartNumber = partNumber;
         part.Brand = request.Brand.Trim();
         part.Category = request.Category.Trim();
-        part.UnitCost = request.UnitCost;
         part.SellingPrice = request.SellingPrice;
         part.QuantityInStock = request.QuantityInStock;
         part.ReorderLevel = request.ReorderLevel;
-        part.VendorId = request.VendorId;
         part.IsActive = request.IsActive;
         part.UpdatedByUserId = userId;
         part.UpdatedAt = DateTime.UtcNow;
@@ -203,29 +187,11 @@ public sealed class PartService : IPartService
         }
     }
 
-    private async Task EnsureVendorExistsAsync(int? vendorId, CancellationToken cancellationToken)
-    {
-        if (!vendorId.HasValue)
-        {
-            return;
-        }
-
-        var exists = await _db.Vendors.AnyAsync(
-            vendor => vendor.VendorId == vendorId.Value && vendor.IsActive,
-            cancellationToken);
-
-        if (!exists)
-        {
-            throw new InvalidPartVendorException();
-        }
-    }
-
     private Task<Part?> GetPartWithDetailsAsync(int partId, CancellationToken cancellationToken)
     {
         return _db.Parts
             .AsNoTracking()
             .Include(part => part.Details)
-            .Include(part => part.Vendor)
             .Include(part => part.CreatedByUser)
             .Include(part => part.UpdatedByUser)
             .FirstOrDefaultAsync(part => part.PartId == partId, cancellationToken);
@@ -241,13 +207,10 @@ public sealed class PartService : IPartService
             part.PartNumber,
             part.Brand,
             part.Category,
-            part.UnitCost,
             part.SellingPrice,
             part.QuantityInStock,
             part.ReorderLevel,
             part.QuantityInStock < part.ReorderLevel,
-            part.VendorId,
-            part.Vendor?.Name ?? string.Empty,
             part.IsActive,
             part.CreatedByUserId,
             part.UpdatedByUserId,

@@ -68,6 +68,16 @@ Use the `Authorization: Bearer <token>` header for every protected endpoint.
 | PUT | `http://localhost:5223/api/parts/{partId}` | Admin | Update an existing inventory part and part details. |
 | DELETE | `http://localhost:5223/api/parts/{partId}` | Admin | Soft delete a part from active inventory. |
 
+### Purchase Invoice Endpoints
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/purchase-invoices` | Admin | List purchase invoices with vendor and item details. |
+| GET | `http://localhost:5223/api/purchase-invoices/{purchaseInvoiceId}` | Admin | Get one purchase invoice by ID. |
+| POST | `http://localhost:5223/api/purchase-invoices` | Admin | Create a purchase invoice and increase purchased part stock. |
+| PUT | `http://localhost:5223/api/purchase-invoices/{purchaseInvoiceId}` | Admin | Update a purchase invoice and recalculate stock movement. |
+| DELETE | `http://localhost:5223/api/purchase-invoices/{purchaseInvoiceId}` | Admin | Cancel a purchase invoice and reverse stock movement. |
+
 ## EF Core Commands
 
 Run these from this folder:

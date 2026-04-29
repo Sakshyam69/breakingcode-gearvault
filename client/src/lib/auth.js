@@ -116,6 +116,30 @@ export async function deletePart(partId) {
   })
 }
 
+export async function getPurchaseInvoices() {
+  return sendAuthenticatedRequest('/api/purchase-invoices')
+}
+
+export async function createPurchaseInvoice(invoice) {
+  return sendAuthenticatedRequest('/api/purchase-invoices', {
+    method: 'POST',
+    body: JSON.stringify(invoice),
+  })
+}
+
+export async function updatePurchaseInvoice(purchaseInvoiceId, invoice) {
+  return sendAuthenticatedRequest(`/api/purchase-invoices/${purchaseInvoiceId}`, {
+    method: 'PUT',
+    body: JSON.stringify(invoice),
+  })
+}
+
+export async function cancelPurchaseInvoice(purchaseInvoiceId) {
+  return sendAuthenticatedRequest(`/api/purchase-invoices/${purchaseInvoiceId}`, {
+    method: 'DELETE',
+  })
+}
+
 export async function getCurrentUser() {
   const user = await sendAuthenticatedRequest('/api/auth/me')
   const currentAuth = getStoredAuth()

@@ -1,17 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, Edit3, Eye, Package, Plus, Search, Trash2, Wrench, X } from 'lucide-react'
-import { createPart, deletePart, getParts, getVendors, updatePart } from '../../lib/auth'
+import { createPart, deletePart, getParts, updatePart } from '../../lib/auth'
 
 const initialFormData = {
   name: '',
   partNumber: '',
   brand: '',
   category: '',
-  unitCost: '',
   sellingPrice: '',
   quantityInStock: '',
   reorderLevel: '10',
-  vendorId: '',
   description: '',
   vehicleMake: '',
   vehicleModel: '',
@@ -24,7 +22,6 @@ const initialFormData = {
 
 export function PartManagement() {
   const [parts, setParts] = useState([])
-  const [vendors, setVendors] = useState([])
   const [formData, setFormData] = useState(initialFormData)
   const [selectedPart, setSelectedPart] = useState(null)
   const [mode, setMode] = useState('list')
@@ -40,10 +37,9 @@ export function PartManagement() {
 
     async function loadInventory() {
       try {
-        const [partData, vendorData] = await Promise.all([getParts(), getVendors()])
+        const partData = await getParts()
         if (isMounted) {
           setParts(partData)
-          setVendors(vendorData)
         }
       } catch (exception) {
         if (isMounted) {
@@ -76,7 +72,6 @@ export function PartManagement() {
         part.partNumber,
         part.brand,
         part.category,
-        part.vendorName,
         details.vehicleMake,
         details.vehicleModel,
         details.vehicleYear,
@@ -111,11 +106,9 @@ export function PartManagement() {
       partNumber: part.partNumber ?? '',
       brand: part.brand ?? '',
       category: part.category ?? '',
-      unitCost: String(part.unitCost ?? ''),
       sellingPrice: String(part.sellingPrice ?? ''),
       quantityInStock: String(part.quantityInStock ?? ''),
       reorderLevel: String(part.reorderLevel ?? 10),
-      vendorId: part.vendorId ? String(part.vendorId) : '',
       description: details.description ?? '',
       vehicleMake: details.vehicleMake ?? '',
       vehicleModel: details.vehicleModel ?? '',
@@ -229,7 +222,6 @@ export function PartManagement() {
             onChange={handleChange}
             onClose={closeSidePanel}
             onSubmit={handleSubmit}
-            vendors={vendors}
           />
         )
       )}
@@ -300,7 +292,7 @@ function PartTable({
               <th className="py-3 pr-4">Pricing</th>
               {!hasSidePanel && (
                 <>
-                  <th className="py-3 pr-4">Vendor</th>
+                  <th className="py-3 pr-4">Location</th>
                   <th className="py-3 pr-4">Compatibility</th>
                 </>
               )}
@@ -343,13 +335,13 @@ function PartTable({
                     </td>
                     <td className="py-4 pr-4">
                       <p className="text-sm font-semibold text-slate-700">{formatMoney(part.sellingPrice)}</p>
-                      <p className="mt-1 text-xs font-semibold text-slate-500">Cost {formatMoney(part.unitCost)}</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-500">Selling price</p>
                     </td>
                     {!hasSidePanel && (
                       <>
                         <td className="py-4 pr-4">
-                          <p className="text-sm font-semibold text-slate-700">{part.vendorName || 'No vendor'}</p>
-                          <p className="mt-1 text-xs font-semibold text-slate-500">{details.shelfLocation || 'No shelf location'}</p>
+                          <p className="text-sm font-semibold text-slate-700">{details.shelfLocation || 'No shelf location'}</p>
+                          <p className="mt-1 text-xs font-semibold text-slate-500">{details.warrantyPeriod || 'No warranty period'}</p>
                         </td>
                         <td className="py-4 pr-4">
                           <p className="text-sm font-semibold text-slate-700">{formatVehicle(details)}</p>
@@ -387,7 +379,7 @@ function PartTable({
   )
 }
 
-function PartFormPanel({ formData, isEditing, isSubmitting, onChange, onClose, onSubmit, vendors }) {
+function PartFormPanel({ formData, isEditing, isSubmitting, onChange, onClose, onSubmit }) {
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <PanelHeader
@@ -408,32 +400,12 @@ function PartFormPanel({ formData, isEditing, isSubmitting, onChange, onClose, o
           <TextField label="Category" name="category" onChange={onChange} required value={formData.category} />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
-          <TextField label="Unit cost" min="0" name="unitCost" onChange={onChange} required step="0.01" type="number" value={formData.unitCost} />
-          <TextField label="Selling price" min="0" name="sellingPrice" onChange={onChange} required step="0.01" type="number" value={formData.sellingPrice} />
-        </div>
+        <TextField label="Selling price" min="0" name="sellingPrice" onChange={onChange} required step="0.01" type="number" value={formData.sellingPrice} />
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
           <TextField label="Quantity in stock" min="0" name="quantityInStock" onChange={onChange} required type="number" value={formData.quantityInStock} />
           <TextField label="Reorder level" min="0" name="reorderLevel" onChange={onChange} required type="number" value={formData.reorderLevel} />
         </div>
-
-        <label className="grid gap-2 text-sm font-bold text-slate-700">
-          Vendor
-          <select
-            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-slate-950 outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-red-100"
-            name="vendorId"
-            onChange={onChange}
-            value={formData.vendorId}
-          >
-            <option value="">No vendor selected</option>
-            {vendors.map((vendor) => (
-              <option key={vendor.vendorId} value={vendor.vendorId}>
-                {vendor.name}
-              </option>
-            ))}
-          </select>
-        </label>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
           <TextField label="Vehicle make" name="vehicleMake" onChange={onChange} value={formData.vehicleMake} />
@@ -487,11 +459,9 @@ function PartDetailsPanel({ onClose, onEdit, part }) {
     { label: 'Part number', value: part.partNumber },
     { label: 'Brand', value: part.brand },
     { label: 'Category', value: part.category },
-    { label: 'Unit cost', value: formatMoney(part.unitCost) },
     { label: 'Selling price', value: formatMoney(part.sellingPrice) },
     { label: 'Quantity', value: part.quantityInStock },
     { label: 'Reorder level', value: part.reorderLevel },
-    { label: 'Vendor', value: part.vendorName || 'No vendor' },
     { label: 'Shelf', value: details.shelfLocation || 'Not set' },
     { label: 'Vehicle', value: formatVehicle(details) },
     { label: 'Engine', value: details.compatibleEngine || 'Any engine' },
@@ -635,11 +605,9 @@ function DetailBlock({ label, value }) {
 function toPartPayload(data) {
   return {
     ...data,
-    unitCost: Number(data.unitCost || 0),
     sellingPrice: Number(data.sellingPrice || 0),
     quantityInStock: Number.parseInt(data.quantityInStock || '0', 10),
     reorderLevel: Number.parseInt(data.reorderLevel || '10', 10),
-    vendorId: data.vendorId ? Number.parseInt(data.vendorId, 10) : null,
     isActive: true,
   }
 }

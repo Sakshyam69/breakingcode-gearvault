@@ -21,9 +21,6 @@ public class CreatePartRequest
     public string Category { get; set; } = string.Empty;
 
     [Range(0, 999999999)]
-    public decimal UnitCost { get; set; }
-
-    [Range(0, 999999999)]
     public decimal SellingPrice { get; set; }
 
     [Range(0, 1000000)]
@@ -31,8 +28,6 @@ public class CreatePartRequest
 
     [Range(0, 1000000)]
     public int ReorderLevel { get; set; } = 10;
-
-    public int? VendorId { get; set; }
 
     [StringLength(500)]
     public string Description { get; set; } = string.Empty;
@@ -70,13 +65,10 @@ public sealed record PartResponse(
     string PartNumber,
     string Brand,
     string Category,
-    decimal UnitCost,
     decimal SellingPrice,
     int QuantityInStock,
     int ReorderLevel,
     bool IsLowStock,
-    int? VendorId,
-    string VendorName,
     bool IsActive,
     int? CreatedByUserId,
     int? UpdatedByUserId,

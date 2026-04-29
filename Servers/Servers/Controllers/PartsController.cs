@@ -56,10 +56,6 @@ public sealed class PartsController : ControllerBase
         {
             return Conflict(new { message = exception.Message });
         }
-        catch (InvalidPartVendorException exception)
-        {
-            return BadRequest(new { message = exception.Message });
-        }
     }
 
     [HttpPut("{partId:int}")]
@@ -82,10 +78,6 @@ public sealed class PartsController : ControllerBase
         catch (DuplicatePartNumberException exception)
         {
             return Conflict(new { message = exception.Message });
-        }
-        catch (InvalidPartVendorException exception)
-        {
-            return BadRequest(new { message = exception.Message });
         }
     }
 

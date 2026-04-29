@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom'
 import { PartManagement } from '../../components/admin/PartManagement'
+import { PurchaseInvoiceManagement } from '../../components/admin/PurchaseInvoiceManagement'
 import { StaffManagement } from '../../components/admin/StaffManagement'
 import { VendorManagement } from '../../components/admin/VendorManagement'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
@@ -31,7 +32,7 @@ const adminPages = {
   '/admin/invoices': {
     title: 'Invoices',
     subtitle: 'Create and manage purchase invoices for stock updates.',
-    content: <UnderDevelopment role="Admin invoices" />,
+    content: <PurchaseInvoiceManagement />,
   },
   '/admin/reports': {
     title: 'Reports',

@@ -22,6 +22,10 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<PartDetails> PartDetails => Set<PartDetails>();
 
+    public DbSet<PurchaseInvoice> PurchaseInvoices => Set<PurchaseInvoice>();
+
+    public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems => Set<PurchaseInvoiceItem>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -212,11 +216,6 @@ public sealed class AppDbContext : DbContext
                 .HasMaxLength(120)
                 .IsRequired();
 
-            entity.Property(part => part.UnitCost)
-                .HasPrecision(12, 2)
-                .HasDefaultValue(0)
-                .IsRequired();
-
             entity.Property(part => part.SellingPrice)
                 .HasPrecision(12, 2)
                 .HasDefaultValue(0)
@@ -241,14 +240,8 @@ public sealed class AppDbContext : DbContext
             entity.HasIndex(part => part.Name);
             entity.HasIndex(part => part.Brand);
             entity.HasIndex(part => part.Category);
-            entity.HasIndex(part => part.VendorId);
             entity.HasIndex(part => part.IsActive);
             entity.HasIndex(part => part.QuantityInStock);
-
-            entity.HasOne(part => part.Vendor)
-                .WithMany()
-                .HasForeignKey(part => part.VendorId)
-                .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasOne(part => part.CreatedByUser)
                 .WithMany()
@@ -304,6 +297,110 @@ public sealed class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(details => details.PartId).IsUnique();
+        });
+
+        modelBuilder.Entity<PurchaseInvoice>(entity =>
+        {
+            entity.ToTable("PurchaseInvoices");
+            entity.HasKey(invoice => invoice.PurchaseInvoiceId);
+
+            entity.Property(invoice => invoice.InvoiceNumber)
+                .HasMaxLength(80)
+                .IsRequired();
+
+            entity.HasIndex(invoice => invoice.InvoiceNumber).IsUnique();
+
+            entity.Property(invoice => invoice.PurchaseDate)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.PaymentStatus)
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.Subtotal)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.DiscountAmount)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.TaxAmount)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.TotalAmount)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.Notes)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.IsCancelled)
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            entity.HasIndex(invoice => invoice.VendorId);
+            entity.HasIndex(invoice => invoice.PurchaseDate);
+            entity.HasIndex(invoice => invoice.PaymentStatus);
+            entity.HasIndex(invoice => invoice.IsCancelled);
+
+            entity.HasOne(invoice => invoice.Vendor)
+                .WithMany()
+                .HasForeignKey(invoice => invoice.VendorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(invoice => invoice.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(invoice => invoice.CreatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(invoice => invoice.UpdatedByUser)
+                .WithMany()
+                .HasForeignKey(invoice => invoice.UpdatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<PurchaseInvoiceItem>(entity =>
+        {
+            entity.ToTable("PurchaseInvoiceItems");
+            entity.HasKey(item => item.PurchaseInvoiceItemId);
+
+            entity.Property(item => item.Quantity)
+                .IsRequired();
+
+            entity.Property(item => item.UnitCost)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.Property(item => item.LineTotal)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.HasOne(item => item.PurchaseInvoice)
+                .WithMany(invoice => invoice.Items)
+                .HasForeignKey(item => item.PurchaseInvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(item => item.Part)
+                .WithMany()
+                .HasForeignKey(item => item.PartId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(item => item.PurchaseInvoiceId);
+            entity.HasIndex(item => item.PartId);
         });
     }
 }

@@ -12,15 +12,11 @@ public sealed class Part
 
     public string Category { get; set; } = string.Empty;
 
-    public decimal UnitCost { get; set; }
-
     public decimal SellingPrice { get; set; }
 
     public int QuantityInStock { get; set; }
 
     public int ReorderLevel { get; set; } = 10;
-
-    public int? VendorId { get; set; }
 
     public bool IsActive { get; set; } = true;
 
@@ -33,8 +29,6 @@ public sealed class Part
     public DateTime? UpdatedAt { get; set; }
 
     public PartDetails? Details { get; set; }
-
-    public Vendor? Vendor { get; set; }
 
     public User? CreatedByUser { get; set; }
 
