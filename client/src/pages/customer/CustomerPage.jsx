@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom'
+import { CustomerVehicleManagement } from '../../components/common/CustomerVehicleWorkspace'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { customerSidebarMenu } from '../../components/dashboard/menus/customerSidebarMenu'
 import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
@@ -13,7 +14,7 @@ const customerPages = {
   '/customer/vehicles': {
     title: 'Vehicles',
     subtitle: 'Manage saved vehicles and service details.',
-    content: <UnderDevelopment role="Customer vehicles" />,
+    content: <CustomerVehicleManagement />,
   },
   '/customer/bookings': {
     title: 'Bookings',

@@ -26,6 +26,8 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems => Set<PurchaseInvoiceItem>();
 
+    public DbSet<CustomerVehicle> CustomerVehicles => Set<CustomerVehicle>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -401,6 +403,83 @@ public sealed class AppDbContext : DbContext
 
             entity.HasIndex(item => item.PurchaseInvoiceId);
             entity.HasIndex(item => item.PartId);
+        });
+
+        modelBuilder.Entity<CustomerVehicle>(entity =>
+        {
+            entity.ToTable("CustomerVehicles");
+            entity.HasKey(vehicle => vehicle.CustomerVehicleId);
+
+            entity.Property(vehicle => vehicle.VehicleNumber)
+                .HasMaxLength(40)
+                .IsRequired();
+
+            entity.HasIndex(vehicle => vehicle.VehicleNumber).IsUnique();
+
+            entity.Property(vehicle => vehicle.Make)
+                .HasMaxLength(120)
+                .IsRequired();
+
+            entity.Property(vehicle => vehicle.Model)
+                .HasMaxLength(120)
+                .IsRequired();
+
+            entity.Property(vehicle => vehicle.Year)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(vehicle => vehicle.Color)
+                .HasMaxLength(60)
+                .IsRequired();
+
+            entity.Property(vehicle => vehicle.FuelType)
+                .HasMaxLength(60)
+                .IsRequired();
+
+            entity.Property(vehicle => vehicle.EngineNumber)
+                .HasMaxLength(120)
+                .IsRequired();
+
+            entity.Property(vehicle => vehicle.ChassisNumber)
+                .HasMaxLength(120)
+                .IsRequired();
+
+            entity.Property(vehicle => vehicle.Notes)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(vehicle => vehicle.IsPrimary)
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            entity.Property(vehicle => vehicle.IsActive)
+                .HasDefaultValue(true)
+                .IsRequired();
+
+            entity.Property(vehicle => vehicle.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            entity.HasOne(vehicle => vehicle.Customer)
+                .WithMany()
+                .HasForeignKey(vehicle => vehicle.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(vehicle => vehicle.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(vehicle => vehicle.CreatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(vehicle => vehicle.UpdatedByUser)
+                .WithMany()
+                .HasForeignKey(vehicle => vehicle.UpdatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(vehicle => vehicle.CustomerId);
+            entity.HasIndex(vehicle => vehicle.IsActive);
+            entity.HasIndex(vehicle => vehicle.IsPrimary);
+            entity.HasIndex(vehicle => vehicle.Make);
+            entity.HasIndex(vehicle => vehicle.Model);
         });
     }
 }

@@ -78,6 +78,21 @@ Use the `Authorization: Bearer <token>` header for every protected endpoint.
 | PUT | `http://localhost:5223/api/purchase-invoices/{purchaseInvoiceId}` | Admin | Update a purchase invoice and recalculate stock movement. |
 | DELETE | `http://localhost:5223/api/purchase-invoices/{purchaseInvoiceId}` | Admin | Cancel a purchase invoice and reverse stock movement. |
 
+### Customer Vehicle Endpoints
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/customer-vehicles/me` | Customer | List the logged-in customer's active vehicles. |
+| POST | `http://localhost:5223/api/customer-vehicles/me` | Customer | Add a vehicle for the logged-in customer. |
+| PUT | `http://localhost:5223/api/customer-vehicles/me/{vehicleId}` | Customer | Update one of the logged-in customer's vehicles. |
+| DELETE | `http://localhost:5223/api/customer-vehicles/me/{vehicleId}` | Customer | Soft delete one of the logged-in customer's vehicles. |
+| GET | `http://localhost:5223/api/customer-vehicles/customers?query={query}` | Admin, Staff | Search customers by name, email, phone, or ID for vehicle management. |
+| GET | `http://localhost:5223/api/customer-vehicles/search?query={query}` | Admin, Staff | Search vehicles by vehicle number, customer name, phone, email, customer ID, make, or model. |
+| GET | `http://localhost:5223/api/customer-vehicles/customer/{customerId}` | Admin, Staff | List active vehicles for a selected customer. |
+| POST | `http://localhost:5223/api/customer-vehicles/customer/{customerId}` | Admin, Staff | Add a vehicle for a selected customer. |
+| PUT | `http://localhost:5223/api/customer-vehicles/{vehicleId}` | Admin, Staff | Update any customer vehicle. |
+| DELETE | `http://localhost:5223/api/customer-vehicles/{vehicleId}` | Admin, Staff | Soft delete any customer vehicle. |
+
 ## EF Core Commands
 
 Run these from this folder:

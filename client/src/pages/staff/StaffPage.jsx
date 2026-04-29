@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom'
 import { VendorManagement } from '../../components/admin/VendorManagement'
+import { StaffCustomerVehicleManagement } from '../../components/common/CustomerVehicleWorkspace'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { staffSidebarMenu } from '../../components/dashboard/menus/staffSidebarMenu'
 import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
@@ -14,7 +15,7 @@ const staffPages = {
   '/staff/customers': {
     title: 'Customers',
     subtitle: 'Search, review, and manage customer records.',
-    content: <UnderDevelopment role="Staff customers" />,
+    content: <StaffCustomerVehicleManagement />,
   },
   '/staff/register-customer': {
     title: 'Register Customer',

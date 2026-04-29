@@ -140,6 +140,62 @@ export async function cancelPurchaseInvoice(purchaseInvoiceId) {
   })
 }
 
+export async function getMyVehicles() {
+  return sendAuthenticatedRequest('/api/customer-vehicles/me')
+}
+
+export async function createMyVehicle(vehicle) {
+  return sendAuthenticatedRequest('/api/customer-vehicles/me', {
+    method: 'POST',
+    body: JSON.stringify(vehicle),
+  })
+}
+
+export async function updateMyVehicle(vehicleId, vehicle) {
+  return sendAuthenticatedRequest(`/api/customer-vehicles/me/${vehicleId}`, {
+    method: 'PUT',
+    body: JSON.stringify(vehicle),
+  })
+}
+
+export async function deleteMyVehicle(vehicleId) {
+  return sendAuthenticatedRequest(`/api/customer-vehicles/me/${vehicleId}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function searchVehicleCustomers(query = '') {
+  return sendAuthenticatedRequest(`/api/customer-vehicles/customers?query=${encodeURIComponent(query)}`)
+}
+
+export async function searchCustomerVehicles(query = '') {
+  return sendAuthenticatedRequest(`/api/customer-vehicles/search?query=${encodeURIComponent(query)}`)
+}
+
+export async function getCustomerVehicles(customerId) {
+  return sendAuthenticatedRequest(`/api/customer-vehicles/customer/${customerId}`)
+}
+
+export async function createCustomerVehicle(customerId, vehicle) {
+  return sendAuthenticatedRequest(`/api/customer-vehicles/customer/${customerId}`, {
+    method: 'POST',
+    body: JSON.stringify(vehicle),
+  })
+}
+
+export async function updateCustomerVehicle(vehicleId, vehicle) {
+  return sendAuthenticatedRequest(`/api/customer-vehicles/${vehicleId}`, {
+    method: 'PUT',
+    body: JSON.stringify(vehicle),
+  })
+}
+
+export async function deleteCustomerVehicle(vehicleId) {
+  return sendAuthenticatedRequest(`/api/customer-vehicles/${vehicleId}`, {
+    method: 'DELETE',
+  })
+}
+
 export async function getCurrentUser() {
   const user = await sendAuthenticatedRequest('/api/auth/me')
   const currentAuth = getStoredAuth()
