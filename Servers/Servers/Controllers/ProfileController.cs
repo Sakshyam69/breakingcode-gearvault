@@ -109,6 +109,9 @@ public sealed class ProfileController : ControllerBase
             return NotFound(new { message = "User not found." });
         }
 
+        user.FullName = request.FullName.Trim();
+        user.Phone = request.Phone.Trim();
+
         var profile = user.Profile ?? new UserProfile
         {
             UserId = user.Id,

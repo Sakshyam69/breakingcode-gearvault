@@ -5,6 +5,15 @@ namespace Servers.DTOs.Profile;
 public sealed class CompleteProfileSetupRequest
 {
     [Required]
+    [StringLength(120, MinimumLength = 2)]
+    public string FullName { get; set; } = string.Empty;
+
+    [Required]
+    [Phone]
+    [StringLength(30)]
+    public string Phone { get; set; } = string.Empty;
+
+    [Required]
     [StringLength(250)]
     public string Address { get; set; } = string.Empty;
 

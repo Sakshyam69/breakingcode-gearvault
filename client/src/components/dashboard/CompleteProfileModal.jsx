@@ -19,6 +19,8 @@ const genderOptions = ['Female', 'Male', 'Other', 'Prefer not to say']
 export function CompleteProfileModal({ onComplete, user }) {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
+    fullName: user?.fullName ?? '',
+    phone: user?.phone ?? '',
     address: '',
     city: '',
     dateOfBirth: '',
@@ -80,6 +82,8 @@ export function CompleteProfileModal({ onComplete, user }) {
 
     try {
       await completeAccountSetup({
+        fullName: formData.fullName,
+        phone: formData.phone,
         address: formData.address,
         city: formData.city,
         dateOfBirth: formData.dateOfBirth || null,
@@ -138,6 +142,26 @@ export function CompleteProfileModal({ onComplete, user }) {
             </div>
 
             <form className="grid grid-cols-1 gap-5 md:grid-cols-2" onSubmit={handleSubmit}>
+              <ProfileField
+                className="md:col-span-2"
+                icon={UserRound}
+                label="Full Name"
+                name="fullName"
+                onChange={handleChange}
+                placeholder="Your full name"
+                required
+                value={formData.fullName}
+              />
+              <ProfileField
+                icon={Phone}
+                label="Phone Number"
+                name="phone"
+                onChange={handleChange}
+                placeholder="Primary phone number"
+                required
+                type="tel"
+                value={formData.phone}
+              />
               <ProfileField
                 icon={MapPin}
                 label="Address"
@@ -218,7 +242,7 @@ export function CompleteProfileModal({ onComplete, user }) {
               <ProfileField
                 className="md:col-span-2"
                 icon={Phone}
-                label="Contact Number"
+                label="Emergency Contact Phone"
                 name="emergencyContactPhone"
                 onChange={handleChange}
                 placeholder="Contact number"

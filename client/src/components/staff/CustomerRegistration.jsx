@@ -1,24 +1,11 @@
 import { useState } from 'react'
-import { Car, Send, UserPlus, X } from 'lucide-react'
+import { Send, UserPlus, X } from 'lucide-react'
 import { createCustomerAccount } from '../../lib/auth'
 
 const initialFormData = {
-  fullName: '',
   email: '',
-  phone: '',
   password: '',
   confirmPassword: '',
-  vehicleNumber: '',
-  make: '',
-  model: '',
-  year: '',
-  color: '',
-  fuelType: '',
-  engineNumber: '',
-  chassisNumber: '',
-  mileage: '',
-  isPrimary: true,
-  notes: '',
 }
 
 export function CustomerRegistration() {
@@ -29,10 +16,10 @@ export function CustomerRegistration() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   function handleChange(event) {
-    const { checked, name, type, value } = event.target
+    const { name, value } = event.target
     setFormData((current) => ({
       ...current,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: value,
     }))
   }
 
@@ -57,11 +44,11 @@ export function CustomerRegistration() {
 
     try {
       const response = await createCustomerAccount(toPayload(formData))
-      setCreatedRecord(response)
+      setCreatedRecord(response.customer)
       setFormData(initialFormData)
       setMessage(response.credentialEmailSent
-        ? 'Customer account, first vehicle, and credential email are ready.'
-        : 'Customer account and first vehicle were created, but the credential email was not sent. Check Brevo settings.')
+        ? 'Customer account created and credentials emailed.'
+        : 'Customer account created, but the credential email was not sent. Check Brevo settings.')
     } catch (exception) {
       setError(exception.message)
     } finally {
@@ -77,7 +64,7 @@ export function CustomerRegistration() {
             <p className="text-xs font-black uppercase text-red-600">Staff</p>
             <h2 className="mt-1 text-2xl font-black text-slate-950">Register Customer</h2>
             <p className="mt-2 text-sm font-semibold text-slate-600">
-              Create customer login credentials and register their first vehicle.
+              Create customer login credentials. Vehicle details can be added after the account is created.
             </p>
           </div>
           <span className="grid h-11 w-11 place-items-center rounded-lg bg-red-50 text-[var(--primary)]">
@@ -87,46 +74,9 @@ export function CustomerRegistration() {
 
         <form className="mt-6 grid gap-6" onSubmit={handleSubmit}>
           <section className="grid gap-4">
-            <SectionTitle icon={UserPlus} title="Customer account" />
-            <div className="grid gap-4 md:grid-cols-2">
-              <TextField label="Full name" name="fullName" onChange={handleChange} required value={formData.fullName} />
-              <TextField label="Phone" name="phone" onChange={handleChange} required type="tel" value={formData.phone} />
-            </div>
-            <TextField label="Email" name="email" onChange={handleChange} required type="email" value={formData.email} />
-            <div className="grid gap-4 md:grid-cols-2">
-              <TextField label="Temporary password" minLength={8} name="password" onChange={handleChange} required type="password" value={formData.password} />
-              <TextField label="Confirm password" minLength={8} name="confirmPassword" onChange={handleChange} required type="password" value={formData.confirmPassword} />
-            </div>
-          </section>
-
-          <section className="grid gap-4">
-            <SectionTitle icon={Car} title="First vehicle" />
-            <TextField label="Vehicle number" name="vehicleNumber" onChange={handleChange} required value={formData.vehicleNumber} />
-            <div className="grid gap-4 md:grid-cols-2">
-              <TextField label="Make" name="make" onChange={handleChange} required value={formData.make} />
-              <TextField label="Model" name="model" onChange={handleChange} required value={formData.model} />
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              <TextField label="Year" name="year" onChange={handleChange} value={formData.year} />
-              <TextField label="Color" name="color" onChange={handleChange} value={formData.color} />
-              <TextField label="Fuel type" name="fuelType" onChange={handleChange} value={formData.fuelType} />
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              <TextField label="Mileage" min="0" name="mileage" onChange={handleChange} type="number" value={formData.mileage} />
-              <TextField label="Engine number" name="engineNumber" onChange={handleChange} value={formData.engineNumber} />
-              <TextField label="Chassis number" name="chassisNumber" onChange={handleChange} value={formData.chassisNumber} />
-            </div>
-            <label className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-700">
-              <input
-                checked={formData.isPrimary}
-                className="h-4 w-4 accent-[var(--primary)]"
-                name="isPrimary"
-                onChange={handleChange}
-                type="checkbox"
-              />
-              Mark as primary vehicle
-            </label>
-            <TextareaField label="Notes" name="notes" onChange={handleChange} value={formData.notes} />
+            <TextField label="Customer email" name="email" onChange={handleChange} required type="email" value={formData.email} />
+            <TextField label="Temporary password" minLength={8} name="password" onChange={handleChange} required type="password" value={formData.password} />
+            <TextField label="Confirm password" minLength={8} name="confirmPassword" onChange={handleChange} required type="password" value={formData.confirmPassword} />
           </section>
 
           {error && <Message tone="error">{error}</Message>}
@@ -139,7 +89,7 @@ export function CustomerRegistration() {
               type="submit"
             >
               <Send size={18} />
-              {isSubmitting ? 'Creating and emailing...' : 'Create customer & email credentials'}
+              {isSubmitting ? 'Creating and emailing...' : 'Create & email credentials'}
             </button>
             <button
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"
@@ -159,16 +109,16 @@ export function CustomerRegistration() {
 
         {createdRecord ? (
           <div className="mt-6 grid gap-3">
-            <SummaryRow label="Customer" value={createdRecord.customer?.fullName} />
-            <SummaryRow label="Email" value={createdRecord.customer?.email} />
-            <SummaryRow label="Phone" value={createdRecord.customer?.phone} />
-            <SummaryRow label="Vehicle" value={createdRecord.vehicle?.vehicleNumber} />
-            <SummaryRow label="Model" value={[createdRecord.vehicle?.make, createdRecord.vehicle?.model].filter(Boolean).join(' ')} />
-            <SummaryRow label="Email status" value={createdRecord.credentialEmailSent ? 'Credentials emailed' : 'Email not sent'} />
+            <SummaryRow label="Customer ID" value={createdRecord.id} />
+            <SummaryRow label="Email" value={createdRecord.email} />
+            <SummaryRow label="Status" value={createdRecord.accountSetupStatus === 'Complete' ? 'Profile complete' : 'Awaiting profile setup'} />
+            <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600">
+              Add vehicle details from the Customers page after selecting this customer.
+            </p>
           </div>
         ) : (
           <p className="mt-6 text-sm font-semibold text-slate-600">
-            The newest customer and vehicle details will appear here after creation.
+            The newest customer details will appear here after creation.
           </p>
         )}
       </section>
@@ -178,33 +128,9 @@ export function CustomerRegistration() {
 
 function toPayload(formData) {
   return {
-    fullName: formData.fullName,
     email: formData.email,
-    phone: formData.phone,
     password: formData.password,
-    vehicle: {
-      vehicleNumber: formData.vehicleNumber,
-      make: formData.make,
-      model: formData.model,
-      year: formData.year,
-      color: formData.color,
-      fuelType: formData.fuelType,
-      engineNumber: formData.engineNumber,
-      chassisNumber: formData.chassisNumber,
-      mileage: formData.mileage === '' ? null : Number(formData.mileage),
-      isPrimary: formData.isPrimary,
-      notes: formData.notes,
-    },
   }
-}
-
-function SectionTitle({ icon: Icon, title }) {
-  return (
-    <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-      <Icon className="text-[var(--primary)]" size={18} />
-      <h3 className="text-sm font-black uppercase text-slate-700">{title}</h3>
-    </div>
-  )
 }
 
 function TextField({ label, name, onChange, value, ...props }) {
@@ -217,20 +143,6 @@ function TextField({ label, name, onChange, value, ...props }) {
         onChange={onChange}
         value={value}
         {...props}
-      />
-    </label>
-  )
-}
-
-function TextareaField({ label, name, onChange, value }) {
-  return (
-    <label className="grid gap-2 text-sm font-bold text-slate-700">
-      {label}
-      <textarea
-        className="min-h-24 resize-y rounded-lg border border-slate-300 bg-white px-3 py-3 text-slate-950 outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-red-100"
-        name={name}
-        onChange={onChange}
-        value={value}
       />
     </label>
   )

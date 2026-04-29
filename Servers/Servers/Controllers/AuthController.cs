@@ -58,15 +58,9 @@ public sealed class AuthController : ControllerBase
         CreateCustomerByStaffRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(userIdValue, out var actorUserId))
-        {
-            return Unauthorized(new { message = "Invalid token subject." });
-        }
-
         try
         {
-            var response = await _authService.CreateCustomerByStaffAsync(request, actorUserId, cancellationToken);
+            var response = await _authService.CreateCustomerByStaffAsync(request, cancellationToken);
             return CreatedAtAction(nameof(GetUsers), new { }, response);
         }
         catch (InvalidOperationException exception)

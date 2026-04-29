@@ -27,7 +27,7 @@ export function DashboardLayout({
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isProfileSetupComplete, setIsProfileSetupComplete] = useState(false)
   const [auth, setAuth] = useState(() => getStoredAuth())
-  const userName = auth?.user?.fullName ?? auth?.user?.email ?? role
+  const userName = getProfileDisplayName(auth?.user, role)
   const profileImageUrl = auth?.user?.profile?.profileImageUrl
   const shouldShowProfileSetup = isAccountSetupPending(auth?.user) && !isProfileSetupComplete
 
@@ -297,7 +297,7 @@ function ProfileDetailsModal({ onClose, onUpdated, user }) {
     profileImageUrl: profile?.profileImageUrl ?? '',
     emergencyContactPhone: profile?.emergencyContactPhone ?? '',
   }))
-  const displayName = user?.fullName || user?.email || 'User'
+  const displayName = getProfileDisplayName(user)
   const details = [
     ['User ID', user?.id],
     ['Email', user?.email],
@@ -508,6 +508,11 @@ function ProfileEditField({
       />
     </label>
   )
+}
+
+function getProfileDisplayName(user, fallback = 'Profile pending') {
+  const fullName = user?.fullName?.trim()
+  return fullName || fallback
 }
 
 function toDateInputValue(value) {

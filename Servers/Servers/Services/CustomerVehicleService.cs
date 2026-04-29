@@ -350,7 +350,7 @@ public sealed class CustomerVehicleService : ICustomerVehicleService
         return new CustomerVehicleResponse(
             vehicle.CustomerVehicleId,
             vehicle.CustomerId,
-            GetUserDisplayName(vehicle.Customer, vehicle.CustomerId),
+            GetUserDisplayName(vehicle.Customer),
             vehicle.Customer?.Email ?? string.Empty,
             vehicle.Customer?.Phone ?? string.Empty,
             vehicle.VehicleNumber,
@@ -366,10 +366,10 @@ public sealed class CustomerVehicleService : ICustomerVehicleService
             vehicle.IsActive,
             vehicle.CreatedByUserId,
             vehicle.UpdatedByUserId,
-            GetUserDisplayName(vehicle.CreatedByUser, vehicle.CreatedByUserId),
+            GetUserDisplayName(vehicle.CreatedByUser),
             vehicle.CreatedByUser?.Email ?? string.Empty,
             GetUserRole(vehicle.CreatedByUser),
-            GetUserDisplayName(vehicle.UpdatedByUser, vehicle.UpdatedByUserId),
+            GetUserDisplayName(vehicle.UpdatedByUser),
             vehicle.UpdatedByUser?.Email ?? string.Empty,
             GetUserRole(vehicle.UpdatedByUser),
             vehicle.CreatedAt,
@@ -377,19 +377,14 @@ public sealed class CustomerVehicleService : ICustomerVehicleService
             vehicle.Notes);
     }
 
-    private static string GetUserDisplayName(User? user, int? userId)
+    private static string GetUserDisplayName(User? user)
     {
         if (!string.IsNullOrWhiteSpace(user?.FullName))
         {
             return user.FullName;
         }
 
-        if (!string.IsNullOrWhiteSpace(user?.Email))
-        {
-            return user.Email;
-        }
-
-        return userId.HasValue ? $"User #{userId.Value}" : string.Empty;
+        return string.Empty;
     }
 
     private static string GetUserRole(User? user)

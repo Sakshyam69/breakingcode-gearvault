@@ -351,7 +351,12 @@ export function StaffCustomerVehicleManagement() {
   }
 
   async function handleDelete(vehicle) {
-    const shouldDelete = window.confirm(`Remove ${vehicle.vehicleNumber} from ${vehicle.customerName}'s vehicles?`)
+    const customerLabel = getCustomerDisplayName({
+      fullName: vehicle.customerName,
+      email: vehicle.customerEmail,
+      customerId: vehicle.customerId,
+    })
+    const shouldDelete = window.confirm(`Remove ${vehicle.vehicleNumber} from ${customerLabel}'s vehicles?`)
     if (!shouldDelete) {
       return
     }
@@ -399,7 +404,7 @@ export function StaffCustomerVehicleManagement() {
                 type="button"
                 onClick={() => selectCustomer(customer)}
               >
-                <p className="text-sm font-black text-slate-950">{customer.fullName || customer.email}</p>
+                <p className="text-sm font-black text-slate-950">{getCustomerDisplayName(customer)}</p>
                 <p className="mt-1 text-xs font-semibold text-slate-500">{customer.phone || customer.email}</p>
                 <p className="mt-2 text-xs font-black uppercase text-red-600">{customer.vehicleCount} vehicle(s)</p>
               </button>
@@ -428,8 +433,8 @@ export function StaffCustomerVehicleManagement() {
         query={vehicleQuery}
         selectedVehicle={selectedVehicle}
         showCustomer
-        tableEyebrow={selectedCustomer ? `Selected customer #${selectedCustomer.customerId}` : 'Vehicle search'}
-        tableTitle={selectedCustomer ? `${selectedCustomer.fullName || selectedCustomer.email}'s Vehicles` : 'Customer Vehicle Directory'}
+        tableEyebrow={selectedCustomer ? `Selected customer ${getCustomerDisplayName(selectedCustomer)}` : 'Vehicle search'}
+        tableTitle={selectedCustomer ? `${getCustomerDisplayName(selectedCustomer)}'s Vehicles` : 'Customer Vehicle Directory'}
       />
     </div>
   )
@@ -577,7 +582,11 @@ function VehicleTable({
                     </td>
                     {showCustomer && (
                       <td className="py-4 pr-4">
-                        <p className="text-sm font-semibold text-slate-700">{vehicle.customerName}</p>
+                        <p className="text-sm font-semibold text-slate-700">{getCustomerDisplayName({
+                          fullName: vehicle.customerName,
+                          email: vehicle.customerEmail,
+                          customerId: vehicle.customerId,
+                        })}</p>
                         <p className="mt-1 text-xs font-semibold text-slate-500">{vehicle.customerPhone || vehicle.customerEmail}</p>
                       </td>
                     )}
@@ -705,7 +714,14 @@ function VehicleDetailsPanel({ onClose, onEdit, showCustomer, vehicle }) {
   ]
 
   if (showCustomer) {
-    rows.splice(1, 0, { label: 'Customer', value: `${vehicle.customerName} (${vehicle.customerPhone || vehicle.customerEmail})` })
+    rows.splice(1, 0, {
+      label: 'Customer',
+      value: `${getCustomerDisplayName({
+        fullName: vehicle.customerName,
+        email: vehicle.customerEmail,
+        customerId: vehicle.customerId,
+      })} (${vehicle.customerPhone || vehicle.customerEmail})`,
+    })
   }
 
   return (
@@ -917,6 +933,16 @@ function normalizePrimaryVehicles(vehicles, updatedVehicle) {
       ? { ...vehicle, isPrimary: vehicle.customerVehicleId === updatedVehicle.customerVehicleId }
       : vehicle
   ))
+}
+
+function getCustomerDisplayName(customer) {
+  const displayName = (customer?.fullName || customer?.customerName || customer?.name || '').trim()
+  if (displayName) {
+    return displayName
+  }
+
+  const customerId = customer?.customerId ?? customer?.id
+  return customerId ? `Customer #${customerId}` : 'Profile pending'
 }
 
 function formatMileage(value) {

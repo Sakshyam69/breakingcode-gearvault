@@ -4,9 +4,7 @@ using System.Text.Encodings.Web;
 using Microsoft.Extensions.Options;
 using Servers.Authentication;
 using Servers.Configuration;
-using Servers.Data;
 using Servers.DTOs.Auth;
-using Servers.DTOs.CustomerVehicles;
 using Servers.Models;
 using Servers.Repositories;
 
@@ -95,7 +93,6 @@ public interface IAuthService
 
     Task<StaffCreatedCustomerResponse> CreateCustomerByStaffAsync(
         CreateCustomerByStaffRequest request,
-        int actorUserId,
         CancellationToken cancellationToken);
 
     Task<AuthResponse?> LoginAsync(LoginRequest request, CancellationToken cancellationToken);
@@ -108,30 +105,24 @@ public interface IAuthService
 public sealed class AuthService : IAuthService
 {
     private readonly IUserRepository _users;
-    private readonly AppDbContext _db;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IAuthTokenService _tokenService;
     private readonly IEmailService _emailService;
-    private readonly ICustomerVehicleService _customerVehicleService;
     private readonly BrevoEmailOptions _emailOptions;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IUserRepository users,
-        AppDbContext db,
         IPasswordHasher passwordHasher,
         IAuthTokenService tokenService,
         IEmailService emailService,
-        ICustomerVehicleService customerVehicleService,
         IOptions<BrevoEmailOptions> emailOptions,
         ILogger<AuthService> logger)
     {
         _users = users;
-        _db = db;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
         _emailService = emailService;
-        _customerVehicleService = customerVehicleService;
         _emailOptions = emailOptions.Value;
         _logger = logger;
     }
@@ -172,40 +163,20 @@ public sealed class AuthService : IAuthService
 
     public async Task<StaffCreatedCustomerResponse> CreateCustomerByStaffAsync(
         CreateCustomerByStaffRequest request,
-        int actorUserId,
         CancellationToken cancellationToken)
     {
-        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
-
-        CustomerVehicleResponse vehicle;
-        User user;
-        try
-        {
-            user = await CreateUserAsync(
-                request.FullName,
-                request.Email,
-                request.Phone,
-                request.Password,
-                UserRole.Customer,
-                AccountSetupStatus.PendingSetup,
-                cancellationToken);
-
-            vehicle = await _customerVehicleService.CreateVehicleAsync(
-                user.Id,
-                request.Vehicle,
-                actorUserId,
-                cancellationToken);
-
-            await transaction.CommitAsync(cancellationToken);
-        }
-        catch (CustomerVehicleValidationException exception)
-        {
-            throw new InvalidOperationException(exception.Message);
-        }
+        var user = await CreateUserAsync(
+            string.Empty,
+            request.Email,
+            string.Empty,
+            request.Password,
+            UserRole.Customer,
+            AccountSetupStatus.PendingSetup,
+            cancellationToken);
 
         var credentialEmailSent = await TrySendCustomerCredentialEmailAsync(user, request.Password, cancellationToken);
 
-        return new StaffCreatedCustomerResponse(ToResponse(user), vehicle, credentialEmailSent);
+        return new StaffCreatedCustomerResponse(ToResponse(user), credentialEmailSent);
     }
 
     public async Task<AuthResponse?> LoginAsync(LoginRequest request, CancellationToken cancellationToken)
@@ -395,7 +366,7 @@ public sealed class AuthService : IAuthService
 
         return $"""
                <p style="margin:0 0 16px;color:#111827;font-size:18px;line-height:26px;font-weight:900;">Hello,</p>
-               <p style="margin:0 0 22px;color:#374151;font-size:15px;line-height:24px;">A staff member has created your AutoCare customer account and registered your vehicle. Use the temporary credentials below to sign in.</p>
+               <p style="margin:0 0 22px;color:#374151;font-size:15px;line-height:24px;">A staff member has created your AutoCare customer account. Use the temporary credentials below to sign in.</p>
                <table role="presentation" cellspacing="0" cellpadding="0" style="width:100%;margin:0 0 24px;border-collapse:separate;border-spacing:0;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
                  <tr>
                    <td width="64" style="padding:18px 0 18px 18px;vertical-align:top;">
@@ -432,7 +403,7 @@ public sealed class AuthService : IAuthService
     private static string BuildCustomerCredentialTextBody(string email, string temporaryPassword)
     {
         return $"""
-               A staff member has created your AutoCare customer account and registered your vehicle.
+               A staff member has created your AutoCare customer account.
 
                Email: {email}
                Temporary password: {temporaryPassword}
