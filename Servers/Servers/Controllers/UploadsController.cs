@@ -20,7 +20,7 @@ public sealed class UploadsController : ControllerBase
     [HttpPost("profile-image")]
     [RequestSizeLimit(5 * 1024 * 1024)]
     public async Task<ActionResult<UploadResponse>> UploadProfileImage(
-        [FromForm] IFormFile file,
+        IFormFile file,
         CancellationToken cancellationToken)
     {
         try

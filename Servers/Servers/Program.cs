@@ -67,6 +67,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.Configure<AuthTokenOptions>(builder.Configuration.GetSection(AuthTokenOptions.SectionName));
 builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection(CloudinaryOptions.SectionName));
+builder.Services.Configure<BrevoEmailOptions>(builder.Configuration.GetSection(BrevoEmailOptions.SectionName));
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(GetDatabaseConnectionString(builder.Configuration));
@@ -74,6 +75,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 builder.Services.AddSingleton<IAuthTokenService, HmacAuthTokenService>();
 builder.Services.AddHttpClient<ICloudinaryService, CloudinaryService>();
+builder.Services.AddScoped<IEmailService, BrevoEmailService>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IVendorService, VendorService>();
@@ -160,6 +162,7 @@ static string NormalizeEnvKey(string key)
 {
     const string authTokenPrefix = "AuthToken_";
     const string cloudinaryPrefix = "Cloudinary_";
+    const string brevoPrefix = "Brevo_";
 
     if (key.StartsWith(authTokenPrefix, StringComparison.Ordinal))
     {
@@ -171,7 +174,32 @@ static string NormalizeEnvKey(string key)
         return $"Cloudinary__{key[cloudinaryPrefix.Length..]}";
     }
 
+    if (key.StartsWith(brevoPrefix, StringComparison.Ordinal))
+    {
+        return $"Brevo__{NormalizeBrevoKey(key[brevoPrefix.Length..])}";
+    }
+
+    if (key is "BrandLogoUrl" or "BrandHeroImageUrl")
+    {
+        return $"Brevo__{key}";
+    }
+
     return key;
+}
+
+static string NormalizeBrevoKey(string key)
+{
+    return key switch
+    {
+        "From_Email" => "FromEmail",
+        "From_Name" => "FromName",
+        "Brand_Logo_Url" => "BrandLogoUrl",
+        "BrandLogo_Url" => "BrandLogoUrl",
+        "Brand_Hero_Image_Url" => "BrandHeroImageUrl",
+        "BrandHeroImage_Url" => "BrandHeroImageUrl",
+        "SMPTPKEY" => "SMTPKey",
+        _ => key
+    };
 }
 
 static string GetDatabaseConnectionString(IConfiguration configuration)

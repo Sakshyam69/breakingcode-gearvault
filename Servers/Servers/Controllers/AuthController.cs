@@ -52,6 +52,29 @@ public sealed class AuthController : ControllerBase
         }
     }
 
+    [HttpPost("customers")]
+    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Staff)}")]
+    public async Task<ActionResult<StaffCreatedCustomerResponse>> CreateCustomer(
+        CreateCustomerByStaffRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdValue, out var actorUserId))
+        {
+            return Unauthorized(new { message = "Invalid token subject." });
+        }
+
+        try
+        {
+            var response = await _authService.CreateCustomerByStaffAsync(request, actorUserId, cancellationToken);
+            return CreatedAtAction(nameof(GetUsers), new { }, response);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Conflict(new { message = exception.Message });
+        }
+    }
+
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<ActionResult<AuthResponse>> Login(

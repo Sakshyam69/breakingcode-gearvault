@@ -64,6 +64,13 @@ export async function createStaffAccount(staff) {
   })
 }
 
+export async function createCustomerAccount(customer) {
+  return sendAuthenticatedRequest('/api/auth/customers', {
+    method: 'POST',
+    body: JSON.stringify(customer),
+  })
+}
+
 export async function getUsers() {
   return sendAuthenticatedRequest('/api/auth/users')
 }

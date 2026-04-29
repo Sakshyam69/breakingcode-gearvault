@@ -4,6 +4,7 @@ import { StaffCustomerVehicleManagement } from '../../components/common/Customer
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { staffSidebarMenu } from '../../components/dashboard/menus/staffSidebarMenu'
 import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
+import { CustomerRegistration } from '../../components/staff/CustomerRegistration'
 import { DashboardStaff } from '../dashboard/DashboardStaff'
 
 const staffPages = {
@@ -20,7 +21,7 @@ const staffPages = {
   '/staff/register-customer': {
     title: 'Register Customer',
     subtitle: 'Create new customer profiles for service and sales workflows.',
-    content: <UnderDevelopment role="Staff customer registration" />,
+    content: <CustomerRegistration />,
   },
   '/staff/vendors': {
     title: 'Vendors',

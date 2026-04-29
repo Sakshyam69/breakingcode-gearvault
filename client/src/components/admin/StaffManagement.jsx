@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Mail, Send, ShieldCheck, UserPlus } from 'lucide-react'
+import { Mail, Send, UserPlus } from 'lucide-react'
 import { createStaffAccount, getUsers } from '../../lib/auth'
 
 const initialFormData = {
@@ -70,8 +70,12 @@ export function StaffManagement() {
       })
 
       setStaffMembers((current) => [auth.user, ...current])
-      setFormData(initialFormData)
-      setMessage('Staff account created. Share the email and password manually for now.')
+      if (auth.credentialEmailSent) {
+        setFormData(initialFormData)
+        setMessage('Staff account created and credentials emailed to the staff member.')
+      } else {
+        setMessage('Staff account created, but the credential email was not sent. Check Brevo settings before creating the next staff account.')
+      }
     } catch (exception) {
       setError(exception.message)
     } finally {
@@ -87,7 +91,7 @@ export function StaffManagement() {
             <p className="text-xs font-black uppercase text-red-600">Admin</p>
             <h2 className="mt-1 text-2xl font-black text-slate-950">Staff Management</h2>
             <p className="mt-2 text-sm font-semibold text-slate-600">
-              Create staff login credentials. Staff can update their own details later.
+              Create staff login credentials and email them automatically.
             </p>
           </div>
           <span className="grid h-11 w-11 place-items-center rounded-lg bg-red-50 text-[var(--primary)]">
@@ -155,17 +159,8 @@ export function StaffManagement() {
               disabled={isSubmitting}
               type="submit"
             >
-              <ShieldCheck size={18} />
-              {isSubmitting ? 'Creating...' : 'Create staff'}
-            </button>
-            <button
-              className="inline-flex min-h-11 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-black text-slate-400"
-              disabled
-              type="button"
-              title="Email service will be implemented later."
-            >
               <Send size={18} />
-              Email credentials
+              {isSubmitting ? 'Creating and emailing...' : 'Create & email credentials'}
             </button>
           </div>
         </form>
@@ -202,11 +197,11 @@ export function StaffManagement() {
               ) : staffMembers.length > 0 ? (
                 staffMembers.map((staff) => (
                   <tr className="border-b border-slate-100 last:border-0" key={staff.id ?? staff.email}>
-                    <td className="py-4 pr-4 text-sm font-black text-slate-950">{staff.fullName || 'Pending profile'}</td>
+                    <td className="py-4 pr-4 text-sm font-black text-slate-950">{getDisplayName(staff)}</td>
                     <td className="py-4 pr-4 text-sm font-semibold text-slate-600">{staff.email}</td>
                     <td className="py-4 pr-4">
-                      <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">
-                        Awaiting profile update
+                      <span className={`rounded-full px-3 py-1 text-xs font-black ${getStatusClassName(staff.accountSetupStatus)}`}>
+                        {getStatusLabel(staff.accountSetupStatus)}
                       </span>
                     </td>
                     <td className="py-4">
@@ -214,10 +209,10 @@ export function StaffManagement() {
                         className="inline-flex min-h-9 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 text-xs font-black text-slate-400"
                         disabled
                         type="button"
-                        title="Email service will be implemented later."
+                        title="Credentials are emailed when the staff account is created."
                       >
                         <Send size={14} />
-                        Send
+                        On create
                       </button>
                     </td>
                   </tr>
@@ -235,4 +230,27 @@ export function StaffManagement() {
       </section>
     </div>
   )
+}
+
+function getDisplayName(staff) {
+  const fullName = staff.fullName?.trim()
+  if (!fullName || fullName === getEmailPrefix(staff.email)) {
+    return ''
+  }
+
+  return fullName
+}
+
+function getEmailPrefix(email = '') {
+  return email.split('@', 1)[0]
+}
+
+function getStatusLabel(status) {
+  return status === 'Complete' ? 'Profile complete' : 'Awaiting profile update'
+}
+
+function getStatusClassName(status) {
+  return status === 'Complete'
+    ? 'bg-emerald-50 text-emerald-700'
+    : 'bg-amber-50 text-amber-700'
 }
