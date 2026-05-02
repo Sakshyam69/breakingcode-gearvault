@@ -32,6 +32,8 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<CustomerCreditTransaction> CustomerCreditTransactions => Set<CustomerCreditTransaction>();
 
+    public DbSet<CustomerReportRequest> CustomerReportRequests => Set<CustomerReportRequest>();
+
     public DbSet<ServiceAppointment> ServiceAppointments => Set<ServiceAppointment>();
 
     public DbSet<BookingInvoice> BookingInvoices => Set<BookingInvoice>();
@@ -561,6 +563,50 @@ public sealed class AppDbContext : DbContext
             entity.HasIndex(transaction => transaction.SourceType);
             entity.HasIndex(transaction => transaction.SourceId);
             entity.HasIndex(transaction => transaction.CreatedAt);
+        });
+
+        modelBuilder.Entity<CustomerReportRequest>(entity =>
+        {
+            entity.ToTable("CustomerReportRequests");
+            entity.HasKey(request => request.CustomerReportRequestId);
+
+            entity.Property(request => request.ReportType)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(request => request.Status)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(request => request.Notes)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(request => request.StaffNote)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(request => request.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            entity.HasOne(request => request.Customer)
+                .WithMany()
+                .HasForeignKey(request => request.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(request => request.CompletedByStaff)
+                .WithMany()
+                .HasForeignKey(request => request.CompletedByStaffId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(request => request.CustomerId);
+            entity.HasIndex(request => request.CompletedByStaffId);
+            entity.HasIndex(request => request.ReportType);
+            entity.HasIndex(request => request.Status);
+            entity.HasIndex(request => request.CreatedAt);
         });
 
         modelBuilder.Entity<ServiceAppointment>(entity =>

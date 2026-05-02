@@ -113,6 +113,16 @@ Use the `Authorization: Bearer <token>` header for every protected endpoint.
 | GET | `http://localhost:5223/api/booking-invoices/{bookingInvoiceId}` | Admin, Staff, Customer owner | Get one service booking invoice by ID. |
 | POST | `http://localhost:5223/api/booking-invoices` | Admin, Staff | Create one invoice for a completed service appointment. |
 
+### Customer Report Endpoints
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/customer-reports?from={date}&to={date}&reportType={Combined\|SalesOnly\|ServicesOnly}&query={query}` | Admin, Staff | Generate customer reports for best clients, regulars, pending credits, parts sales, and services. |
+| GET | `http://localhost:5223/api/customer-reports/requests` | Admin, Staff | List customer report requests. |
+| PUT | `http://localhost:5223/api/customer-reports/requests/{requestId}/complete` | Admin, Staff | Mark a customer report request as prepared and notify the customer. |
+| GET | `http://localhost:5223/api/customer-reports/requests/me` | Customer | List the logged-in customer's report requests. |
+| POST | `http://localhost:5223/api/customer-reports/requests/me` | Customer | Request a sales-only, services-only, or combined report from staff. |
+
 ## EF Core Commands
 
 Run these from this folder:

@@ -2,10 +2,10 @@ import { useLocation } from 'react-router-dom'
 import { CustomerVehicleManagement } from '../../components/common/CustomerVehicleWorkspace'
 import { CustomerInvoiceHistory } from '../../components/customer/CustomerInvoiceHistory'
 import { CustomerPartRequests } from '../../components/customer/CustomerPartRequests'
+import { CustomerReportRequests } from '../../components/customer/CustomerReportRequests'
 import { CustomerServiceBookings } from '../../components/customer/CustomerServiceBookings'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { customerSidebarMenu } from '../../components/dashboard/menus/customerSidebarMenu'
-import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
 import { DashboardCustomer } from '../dashboard/DashboardCustomer'
 
 const customerPages = {
@@ -36,8 +36,8 @@ const customerPages = {
   },
   '/customer/settings': {
     title: 'Settings',
-    subtitle: 'Manage customer preferences and account settings.',
-    content: <UnderDevelopment role="Customer settings" />,
+    subtitle: 'Request sales, service, or full customer reports from staff.',
+    content: <CustomerReportRequests />,
   },
 }
 

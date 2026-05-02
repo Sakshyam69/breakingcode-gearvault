@@ -320,6 +320,48 @@ export async function createBookingInvoice(invoice) {
   })
 }
 
+export async function getCustomerReports({ from = '', to = '', reportType = 'Combined', query = '' } = {}) {
+  const params = new URLSearchParams()
+  if (from) {
+    params.set('from', from)
+  }
+  if (to) {
+    params.set('to', to)
+  }
+  if (reportType) {
+    params.set('reportType', reportType)
+  }
+  if (query) {
+    params.set('query', query)
+  }
+
+  const queryString = params.toString()
+  return sendAuthenticatedRequest(`/api/customer-reports${queryString ? `?${queryString}` : ''}`)
+}
+
+export async function getCustomerReportRequests(status = '') {
+  const queryString = status ? `?status=${encodeURIComponent(status)}` : ''
+  return sendAuthenticatedRequest(`/api/customer-reports/requests${queryString}`)
+}
+
+export async function completeCustomerReportRequest(requestId, request = {}) {
+  return sendAuthenticatedRequest(`/api/customer-reports/requests/${requestId}/complete`, {
+    method: 'PUT',
+    body: JSON.stringify(request),
+  })
+}
+
+export async function getMyCustomerReportRequests() {
+  return sendAuthenticatedRequest('/api/customer-reports/requests/me')
+}
+
+export async function createMyCustomerReportRequest(request) {
+  return sendAuthenticatedRequest('/api/customer-reports/requests/me', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  })
+}
+
 export async function getMyNotifications() {
   return sendAuthenticatedRequest('/api/notifications/me')
 }

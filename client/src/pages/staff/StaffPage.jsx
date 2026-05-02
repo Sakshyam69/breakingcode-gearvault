@@ -6,6 +6,7 @@ import { staffSidebarMenu } from '../../components/dashboard/menus/staffSidebarM
 import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
 import { CustomerRegistration } from '../../components/staff/CustomerRegistration'
 import { SalesInvoiceManagement } from '../../components/staff/SalesInvoiceManagement'
+import { StaffCustomerReportGenerator } from '../../components/staff/StaffCustomerReportGenerator'
 import { StaffPartRequestManagement } from '../../components/staff/StaffPartRequestManagement'
 import { StaffServiceBookingManagement } from '../../components/staff/StaffServiceBookingManagement'
 import { DashboardStaff } from '../dashboard/DashboardStaff'
@@ -45,6 +46,11 @@ const staffPages = {
     title: 'Bookings',
     subtitle: 'Review and manage customer service bookings.',
     content: <StaffServiceBookingManagement />,
+  },
+  '/staff/reports': {
+    title: 'Customer Reports',
+    subtitle: '',
+    content: <StaffCustomerReportGenerator />,
   },
   '/staff/settings': {
     title: 'Settings',

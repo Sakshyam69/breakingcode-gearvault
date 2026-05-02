@@ -63,4 +63,107 @@
     background: rgb(239 68 68 / 0.28);
     color: var(--text-primary);
   }
+
+  #customer-report-print {
+    display: none;
+  }
+
+  @media print {
+    @page {
+      margin: 12mm;
+      size: A4 portrait;
+    }
+
+    html,
+    body {
+      background: #ffffff !important;
+      height: auto;
+      min-height: 0;
+    }
+
+    body * {
+      visibility: hidden;
+    }
+
+    #customer-report-print,
+    #customer-report-print * {
+      visibility: visible;
+    }
+
+    #customer-report-print {
+      background: #ffffff;
+      color: #111827;
+      display: block;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      left: 0;
+      min-height: 0;
+      padding: 0;
+      position: absolute;
+      top: 0;
+      width: 100%;
+    }
+
+    #customer-report-print .print-header {
+      border-bottom: 2px solid #ef4444;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+    }
+
+    #customer-report-print p {
+      color: #ef4444;
+      font-size: 11px;
+      font-weight: 900;
+      margin: 0 0 6px;
+      text-transform: uppercase;
+    }
+
+    #customer-report-print h1 {
+      color: #111827;
+      font-size: 24px;
+      margin: 0 0 4px;
+    }
+
+    #customer-report-print h2 {
+      color: #111827;
+      font-size: 15px;
+      margin: 18px 0 8px;
+    }
+
+    #customer-report-print span {
+      color: #4b5563;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    #customer-report-print table {
+      border-collapse: collapse;
+      font-size: 11px;
+      page-break-inside: auto;
+      width: 100%;
+    }
+
+    #customer-report-print .print-details {
+      margin-top: 18px;
+    }
+
+    #customer-report-print tr {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    #customer-report-print th {
+      background: #f3f4f6;
+      color: #374151;
+      font-weight: 900;
+      text-align: left;
+      text-transform: uppercase;
+    }
+
+    #customer-report-print th,
+    #customer-report-print td {
+      border: 1px solid #d1d5db;
+      padding: 8px;
+      vertical-align: top;
+    }
+  }
 }
