@@ -9,7 +9,7 @@ namespace Servers.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Staff)}")]
+[Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Staff)},{nameof(UserRole.Customer)}")]
 public sealed class PartsController : ControllerBase
 {
     private readonly IPartService _parts;

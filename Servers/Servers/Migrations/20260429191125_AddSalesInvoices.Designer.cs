@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Servers.Data;
@@ -11,9 +12,11 @@ using Servers.Data;
 namespace Servers.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260429191125_AddSalesInvoices")]
+    partial class AddSalesInvoices
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -673,7 +676,7 @@ namespace Servers.Migrations
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)");
 
-                    b.Property<int?>("PartId")
+                    b.Property<int>("PartId")
                         .HasColumnType("integer");
 
                     b.Property<string>("PartName")
@@ -1053,7 +1056,7 @@ namespace Servers.Migrations
                     b.HasOne("Servers.Models.Part", "Part")
                         .WithMany()
                         .HasForeignKey("PartId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Servers.Models.PurchaseInvoice", "PurchaseInvoice")
@@ -1098,7 +1101,8 @@ namespace Servers.Migrations
                     b.HasOne("Servers.Models.Part", "Part")
                         .WithMany()
                         .HasForeignKey("PartId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Servers.Models.SalesInvoice", "SalesInvoice")
                         .WithMany("Items")

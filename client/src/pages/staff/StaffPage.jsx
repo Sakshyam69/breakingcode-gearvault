@@ -5,6 +5,8 @@ import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { staffSidebarMenu } from '../../components/dashboard/menus/staffSidebarMenu'
 import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
 import { CustomerRegistration } from '../../components/staff/CustomerRegistration'
+import { SalesInvoiceManagement } from '../../components/staff/SalesInvoiceManagement'
+import { StaffPartRequestManagement } from '../../components/staff/StaffPartRequestManagement'
 import { DashboardStaff } from '../dashboard/DashboardStaff'
 
 const staffPages = {
@@ -31,7 +33,12 @@ const staffPages = {
   '/staff/sales-invoices': {
     title: 'Sales Invoices',
     subtitle: 'Create and manage customer sales invoices.',
-    content: <UnderDevelopment role="Staff sales invoices" />,
+    content: <SalesInvoiceManagement />,
+  },
+  '/staff/part-requests': {
+    title: 'Part Requests',
+    subtitle: 'Review customer part requests and update availability.',
+    content: <StaffPartRequestManagement />,
   },
   '/staff/bookings': {
     title: 'Bookings',

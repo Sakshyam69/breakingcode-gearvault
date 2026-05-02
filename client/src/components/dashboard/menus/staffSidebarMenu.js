@@ -1,6 +1,7 @@
 import {
   CalendarCheck,
   LayoutDashboard,
+  PackageSearch,
   ReceiptText,
   Search,
   Settings,
@@ -13,6 +14,7 @@ export const staffSidebarMenu = [
   { label: 'Customers', to: '/staff/customers', icon: Search },
   { label: 'Register Customer', to: '/staff/register-customer', icon: UserPlus },
   { label: 'Vendors', to: '/staff/vendors', icon: Truck },
+  { label: 'Part Requests', to: '/staff/part-requests', icon: PackageSearch },
   { label: 'Sales Invoices', to: '/staff/sales-invoices', icon: ReceiptText },
   { label: 'Bookings', to: '/staff/bookings', icon: CalendarCheck },
   { label: 'Settings', to: '/staff/settings', icon: Settings },

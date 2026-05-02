@@ -1,5 +1,7 @@
 import { useLocation } from 'react-router-dom'
 import { CustomerVehicleManagement } from '../../components/common/CustomerVehicleWorkspace'
+import { CustomerInvoiceHistory } from '../../components/customer/CustomerInvoiceHistory'
+import { CustomerPartRequests } from '../../components/customer/CustomerPartRequests'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { customerSidebarMenu } from '../../components/dashboard/menus/customerSidebarMenu'
 import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
@@ -24,12 +26,12 @@ const customerPages = {
   '/customer/part-requests': {
     title: 'Part Requests',
     subtitle: 'Track requested parts and availability updates.',
-    content: <UnderDevelopment role="Customer part requests" />,
+    content: <CustomerPartRequests />,
   },
   '/customer/history': {
     title: 'History',
     subtitle: 'Review service history, invoices, and past activity.',
-    content: <UnderDevelopment role="Customer history" />,
+    content: <CustomerInvoiceHistory />,
   },
   '/customer/settings': {
     title: 'Settings',

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Servers.Data;
@@ -11,9 +12,11 @@ using Servers.Data;
 namespace Servers.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260429184513_AddPartRequestsAndNotifications")]
+    partial class AddPartRequestsAndNotifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -551,160 +554,6 @@ namespace Servers.Migrations
                     b.ToTable("PurchaseInvoiceItems", (string)null);
                 });
 
-            modelBuilder.Entity("Servers.Models.SalesInvoice", b =>
-                {
-                    b.Property<int>("SalesInvoiceId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SalesInvoiceId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("NOW()");
-
-                    b.Property<decimal>("CreditAmount")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("DiscountAmount")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<string>("DiscountReason")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("EmailSent")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<DateTime>("InvoiceDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("InvoiceNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<bool>("IsCancelled")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<decimal>("PaidAmount")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<int?>("SourcePartRequestId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("StaffId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<decimal>("TaxAmount")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("SalesInvoiceId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("InvoiceDate");
-
-                    b.HasIndex("InvoiceNumber")
-                        .IsUnique();
-
-                    b.HasIndex("IsCancelled");
-
-                    b.HasIndex("PaymentStatus");
-
-                    b.HasIndex("SourcePartRequestId");
-
-                    b.HasIndex("StaffId");
-
-                    b.ToTable("SalesInvoices", (string)null);
-                });
-
-            modelBuilder.Entity("Servers.Models.SalesInvoiceItem", b =>
-                {
-                    b.Property<int>("SalesInvoiceItemId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SalesInvoiceItemId"));
-
-                    b.Property<decimal>("LineTotal")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<int?>("PartId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("PartName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.Property<string>("PartNumber")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("SalesInvoiceId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.HasKey("SalesInvoiceItemId");
-
-                    b.HasIndex("PartId");
-
-                    b.HasIndex("SalesInvoiceId");
-
-                    b.ToTable("SalesInvoiceItems", (string)null);
-                });
-
             modelBuilder.Entity("Servers.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -1053,7 +902,7 @@ namespace Servers.Migrations
                     b.HasOne("Servers.Models.Part", "Part")
                         .WithMany()
                         .HasForeignKey("PartId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Servers.Models.PurchaseInvoice", "PurchaseInvoice")
@@ -1065,50 +914,6 @@ namespace Servers.Migrations
                     b.Navigation("Part");
 
                     b.Navigation("PurchaseInvoice");
-                });
-
-            modelBuilder.Entity("Servers.Models.SalesInvoice", b =>
-                {
-                    b.HasOne("Servers.Models.User", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Servers.Models.PartRequest", "SourcePartRequest")
-                        .WithMany()
-                        .HasForeignKey("SourcePartRequestId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Servers.Models.User", "Staff")
-                        .WithMany()
-                        .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("SourcePartRequest");
-
-                    b.Navigation("Staff");
-                });
-
-            modelBuilder.Entity("Servers.Models.SalesInvoiceItem", b =>
-                {
-                    b.HasOne("Servers.Models.Part", "Part")
-                        .WithMany()
-                        .HasForeignKey("PartId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Servers.Models.SalesInvoice", "SalesInvoice")
-                        .WithMany("Items")
-                        .HasForeignKey("SalesInvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Part");
-
-                    b.Navigation("SalesInvoice");
                 });
 
             modelBuilder.Entity("Servers.Models.UserProfile", b =>
@@ -1156,11 +961,6 @@ namespace Servers.Migrations
                 });
 
             modelBuilder.Entity("Servers.Models.PurchaseInvoice", b =>
-                {
-                    b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("Servers.Models.SalesInvoice", b =>
                 {
                     b.Navigation("Items");
                 });

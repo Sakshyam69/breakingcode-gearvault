@@ -6,8 +6,11 @@ import {
   clearAuth,
   getCurrentProfile,
   getCurrentUser,
+  getMyNotifications,
   getStoredAuth,
   isAccountSetupPending,
+  markAllNotificationsRead,
+  markNotificationRead,
   updateProfile,
   uploadProfileImage,
 } from '../../lib/auth'
@@ -25,6 +28,8 @@ export function DashboardLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+  const [notifications, setNotifications] = useState([])
   const [isProfileSetupComplete, setIsProfileSetupComplete] = useState(false)
   const [auth, setAuth] = useState(() => getStoredAuth())
   const userName = getProfileDisplayName(auth?.user, role)
@@ -74,9 +79,65 @@ export function DashboardLayout({
     }
   }, [auth?.token])
 
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadNotifications() {
+      if (!auth?.token) {
+        return
+      }
+
+      try {
+        const data = await getMyNotifications()
+        if (isMounted) {
+          setNotifications(data)
+        }
+      } catch {
+        if (isMounted) {
+          setNotifications([])
+        }
+      }
+    }
+
+    loadNotifications()
+
+    return () => {
+      isMounted = false
+    }
+  }, [auth?.token, location.pathname])
+
   function handleLogout() {
     clearAuth()
     navigate('/login', { replace: true })
+  }
+
+  async function handleNotificationClick(notification) {
+    try {
+      const updatedNotification = await markNotificationRead(notification.notificationId)
+      setNotifications((current) => current.map((item) => (
+        item.notificationId === notification.notificationId ? updatedNotification : item
+      )))
+    } catch {
+      setNotifications((current) => current.map((item) => (
+        item.notificationId === notification.notificationId ? { ...item, isRead: true } : item
+      )))
+    }
+
+    setIsNotificationsOpen(false)
+    if (notification.linkUrl) {
+      navigate(notification.linkUrl)
+    }
+  }
+
+  async function handleMarkAllRead() {
+    try {
+      await markAllNotificationsRead()
+    } finally {
+      setNotifications((current) => current.map((notification) => ({
+        ...notification,
+        isRead: true,
+      })))
+    }
   }
 
   function isActiveRoute(path) {
@@ -86,6 +147,8 @@ export function DashboardLayout({
 
     return location.pathname === path || location.pathname.startsWith(`${path}/`)
   }
+
+  const unreadNotificationCount = notifications.filter((notification) => !notification.isRead).length
 
   return (
     <div className="min-h-screen bg-white text-slate-950">
@@ -193,13 +256,56 @@ export function DashboardLayout({
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                className="grid h-10 w-10 place-items-center rounded-lg border border-red-500/35 text-slate-200 transition hover:bg-white/10 hover:text-white"
-                type="button"
-                aria-label="Notifications"
-              >
-                <Bell size={18} />
-              </button>
+              <div className="relative">
+                <button
+                  className="relative grid h-10 w-10 place-items-center rounded-lg border border-red-500/35 text-slate-200 transition hover:bg-white/10 hover:text-white"
+                  type="button"
+                  aria-label="Notifications"
+                  onClick={() => setIsNotificationsOpen((current) => !current)}
+                >
+                  <Bell size={18} />
+                  {unreadNotificationCount > 0 && (
+                    <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-[var(--primary)] px-1 text-[10px] font-black text-white">
+                      {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+                    </span>
+                  )}
+                </button>
+                {isNotificationsOpen && (
+                  <section className="absolute right-0 top-12 z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-slate-200 bg-white text-slate-950 shadow-2xl">
+                    <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+                      <div>
+                        <p className="text-xs font-black uppercase text-red-600">Notifications</p>
+                        <p className="text-sm font-bold text-slate-600">{unreadNotificationCount} unread</p>
+                      </div>
+                      <button
+                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-black text-slate-700 transition hover:bg-slate-50"
+                        type="button"
+                        onClick={handleMarkAllRead}
+                      >
+                        Mark all read
+                      </button>
+                    </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifications.length > 0 ? notifications.map((notification) => (
+                        <button
+                          className={`block w-full border-b border-slate-100 px-4 py-3 text-left transition last:border-0 ${
+                            notification.isRead ? 'bg-white hover:bg-slate-50' : 'bg-red-50 hover:bg-red-100/70'
+                          }`}
+                          key={notification.notificationId}
+                          type="button"
+                          onClick={() => handleNotificationClick(notification)}
+                        >
+                          <p className="text-sm font-black text-slate-950">{notification.title}</p>
+                          <p className="mt-1 text-xs font-semibold text-slate-600">{notification.message}</p>
+                          <p className="mt-2 text-[11px] font-bold uppercase text-slate-400">{formatDate(notification.createdAt)}</p>
+                        </button>
+                      )) : (
+                        <p className="px-4 py-6 text-sm font-semibold text-slate-600">No notifications yet.</p>
+                      )}
+                    </div>
+                  </section>
+                )}
+              </div>
               <button
                 className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-red-500/35 text-slate-200 transition hover:bg-white/10 hover:text-white"
                 type="button"

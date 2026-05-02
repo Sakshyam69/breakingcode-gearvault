@@ -203,6 +203,82 @@ export async function deleteCustomerVehicle(vehicleId) {
   })
 }
 
+export async function getMyPartRequests() {
+  return sendAuthenticatedRequest('/api/part-requests/me')
+}
+
+export async function createMyPartRequest(partRequest) {
+  return sendAuthenticatedRequest('/api/part-requests/me', {
+    method: 'POST',
+    body: JSON.stringify(partRequest),
+  })
+}
+
+export async function cancelMyPartRequest(partRequestId) {
+  return sendAuthenticatedRequest(`/api/part-requests/me/${partRequestId}/cancel`, {
+    method: 'PUT',
+  })
+}
+
+export async function getPartRequests({ query = '', status = '' } = {}) {
+  const params = new URLSearchParams()
+  if (query) {
+    params.set('query', query)
+  }
+  if (status) {
+    params.set('status', status)
+  }
+
+  const queryString = params.toString()
+  return sendAuthenticatedRequest(`/api/part-requests${queryString ? `?${queryString}` : ''}`)
+}
+
+export async function updatePartRequestStatus(partRequestId, update) {
+  return sendAuthenticatedRequest(`/api/part-requests/${partRequestId}/status`, {
+    method: 'PUT',
+    body: JSON.stringify(update),
+  })
+}
+
+export async function getSalesInvoices(query = '') {
+  const queryString = query ? `?query=${encodeURIComponent(query)}` : ''
+  return sendAuthenticatedRequest(`/api/sales-invoices${queryString}`)
+}
+
+export async function getMySalesInvoices() {
+  return sendAuthenticatedRequest('/api/sales-invoices/me')
+}
+
+export async function createSalesInvoice(invoice) {
+  return sendAuthenticatedRequest('/api/sales-invoices', {
+    method: 'POST',
+    body: JSON.stringify(invoice),
+  })
+}
+
+export async function createSalesInvoiceFromPartRequest(partRequestId, invoice) {
+  return sendAuthenticatedRequest(`/api/sales-invoices/from-part-request/${partRequestId}`, {
+    method: 'POST',
+    body: JSON.stringify(invoice),
+  })
+}
+
+export async function getMyNotifications() {
+  return sendAuthenticatedRequest('/api/notifications/me')
+}
+
+export async function markNotificationRead(notificationId) {
+  return sendAuthenticatedRequest(`/api/notifications/${notificationId}/read`, {
+    method: 'PUT',
+  })
+}
+
+export async function markAllNotificationsRead() {
+  return sendAuthenticatedRequest('/api/notifications/read-all', {
+    method: 'PUT',
+  })
+}
+
 export async function getCurrentUser() {
   const user = await sendAuthenticatedRequest('/api/auth/me')
   const currentAuth = getStoredAuth()

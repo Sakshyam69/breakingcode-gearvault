@@ -28,6 +28,14 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<CustomerVehicle> CustomerVehicles => Set<CustomerVehicle>();
 
+    public DbSet<PartRequest> PartRequests => Set<PartRequest>();
+
+    public DbSet<Notification> Notifications => Set<Notification>();
+
+    public DbSet<SalesInvoice> SalesInvoices => Set<SalesInvoice>();
+
+    public DbSet<SalesInvoiceItem> SalesInvoiceItems => Set<SalesInvoiceItem>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -399,7 +407,7 @@ public sealed class AppDbContext : DbContext
             entity.HasOne(item => item.Part)
                 .WithMany()
                 .HasForeignKey(item => item.PartId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasIndex(item => item.PurchaseInvoiceId);
             entity.HasIndex(item => item.PartId);
@@ -480,6 +488,245 @@ public sealed class AppDbContext : DbContext
             entity.HasIndex(vehicle => vehicle.IsPrimary);
             entity.HasIndex(vehicle => vehicle.Make);
             entity.HasIndex(vehicle => vehicle.Model);
+        });
+
+        modelBuilder.Entity<PartRequest>(entity =>
+        {
+            entity.ToTable("PartRequests");
+            entity.HasKey(request => request.PartRequestId);
+
+            entity.Property(request => request.PartName)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(request => request.PartNumber)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(request => request.Description)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(request => request.Quantity)
+                .IsRequired();
+
+            entity.Property(request => request.Urgency)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(request => request.Status)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(request => request.StaffNote)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(request => request.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            entity.HasOne(request => request.Customer)
+                .WithMany()
+                .HasForeignKey(request => request.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(request => request.Vehicle)
+                .WithMany()
+                .HasForeignKey(request => request.VehicleId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(request => request.RequestedPart)
+                .WithMany()
+                .HasForeignKey(request => request.RequestedPartId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(request => request.CustomerId);
+            entity.HasIndex(request => request.VehicleId);
+            entity.HasIndex(request => request.RequestedPartId);
+            entity.HasIndex(request => request.Status);
+            entity.HasIndex(request => request.Urgency);
+            entity.HasIndex(request => request.CreatedAt);
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.ToTable("Notifications");
+            entity.HasKey(notification => notification.NotificationId);
+
+            entity.Property(notification => notification.RoleTarget)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(notification => notification.Type)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(notification => notification.Title)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(notification => notification.Message)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(notification => notification.LinkUrl)
+                .HasMaxLength(250)
+                .IsRequired();
+
+            entity.Property(notification => notification.RelatedEntityType)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(notification => notification.IsRead)
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            entity.Property(notification => notification.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            entity.HasOne(notification => notification.User)
+                .WithMany()
+                .HasForeignKey(notification => notification.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(notification => notification.UserId);
+            entity.HasIndex(notification => notification.RoleTarget);
+            entity.HasIndex(notification => notification.Type);
+            entity.HasIndex(notification => notification.IsRead);
+            entity.HasIndex(notification => notification.CreatedAt);
+        });
+
+        modelBuilder.Entity<SalesInvoice>(entity =>
+        {
+            entity.ToTable("SalesInvoices");
+            entity.HasKey(invoice => invoice.SalesInvoiceId);
+
+            entity.Property(invoice => invoice.InvoiceNumber)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.HasIndex(invoice => invoice.InvoiceNumber).IsUnique();
+
+            entity.Property(invoice => invoice.InvoiceDate)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.Subtotal)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.DiscountAmount)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.DiscountReason)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.TaxAmount)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.TotalAmount)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.PaidAmount)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.CreditAmount)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.PaymentStatus)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.PaymentMethod)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.Notes)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.EmailSent)
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.IsCancelled)
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            entity.HasOne(invoice => invoice.Customer)
+                .WithMany()
+                .HasForeignKey(invoice => invoice.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(invoice => invoice.Staff)
+                .WithMany()
+                .HasForeignKey(invoice => invoice.StaffId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(invoice => invoice.SourcePartRequest)
+                .WithMany()
+                .HasForeignKey(invoice => invoice.SourcePartRequestId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(invoice => invoice.CustomerId);
+            entity.HasIndex(invoice => invoice.StaffId);
+            entity.HasIndex(invoice => invoice.SourcePartRequestId);
+            entity.HasIndex(invoice => invoice.InvoiceDate);
+            entity.HasIndex(invoice => invoice.PaymentStatus);
+            entity.HasIndex(invoice => invoice.IsCancelled);
+        });
+
+        modelBuilder.Entity<SalesInvoiceItem>(entity =>
+        {
+            entity.ToTable("SalesInvoiceItems");
+            entity.HasKey(item => item.SalesInvoiceItemId);
+
+            entity.Property(item => item.PartName)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(item => item.PartNumber)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(item => item.UnitPrice)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(item => item.Quantity)
+                .IsRequired();
+
+            entity.Property(item => item.LineTotal)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.HasOne(item => item.SalesInvoice)
+                .WithMany(invoice => invoice.Items)
+                .HasForeignKey(item => item.SalesInvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(item => item.Part)
+                .WithMany()
+                .HasForeignKey(item => item.PartId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(item => item.SalesInvoiceId);
+            entity.HasIndex(item => item.PartId);
         });
     }
 }
