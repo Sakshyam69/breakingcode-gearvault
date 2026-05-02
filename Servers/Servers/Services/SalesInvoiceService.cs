@@ -41,6 +41,7 @@ public sealed class SalesInvoiceService : ISalesInvoiceService
     private const decimal LoyaltyDiscountRate = 0.10m;
 
     private readonly AppDbContext _db;
+    private readonly ICustomerCreditService _customerCredits;
     private readonly IEmailService _emailService;
     private readonly INotificationService _notifications;
     private readonly BrevoEmailOptions _emailOptions;
@@ -48,12 +49,14 @@ public sealed class SalesInvoiceService : ISalesInvoiceService
 
     public SalesInvoiceService(
         AppDbContext db,
+        ICustomerCreditService customerCredits,
         IEmailService emailService,
         INotificationService notifications,
         IOptions<BrevoEmailOptions> emailOptions,
         ILogger<SalesInvoiceService> logger)
     {
         _db = db;
+        _customerCredits = customerCredits;
         _emailService = emailService;
         _notifications = notifications;
         _emailOptions = emailOptions.Value;
@@ -140,6 +143,7 @@ public sealed class SalesInvoiceService : ISalesInvoiceService
             request.SourcePartRequestId,
             request.InvoiceDate,
             request.PaidAmount,
+            request.CustomerCreditAppliedAmount,
             request.PaymentMethod,
             request.DueDate,
             request.Notes,
@@ -176,6 +180,7 @@ public sealed class SalesInvoiceService : ISalesInvoiceService
             partRequest.PartRequestId,
             DateTime.UtcNow,
             request.PaidAmount,
+            request.CustomerCreditAppliedAmount,
             request.PaymentMethod,
             request.DueDate,
             request.Notes,
@@ -190,6 +195,7 @@ public sealed class SalesInvoiceService : ISalesInvoiceService
         int? sourcePartRequestId,
         DateTime invoiceDate,
         decimal paidAmount,
+        decimal customerCreditAppliedAmount,
         SalesInvoicePaymentMethod paymentMethod,
         DateTime? dueDate,
         string notes,
@@ -209,12 +215,14 @@ public sealed class SalesInvoiceService : ISalesInvoiceService
             InvoiceDate = ToUtcDateTime(invoiceDate),
             PaymentMethod = paymentMethod,
             PaidAmount = paidAmount,
+            CustomerCreditAppliedAmount = customerCreditAppliedAmount,
             DueDate = ToUtcNullableDateTime(dueDate),
             Notes = notes.Trim(),
             CreatedAt = DateTime.UtcNow
         };
 
         ApplyItemsAndTotals(invoice, items, parts);
+        await ValidateCustomerCreditAsync(customerId, invoice.CustomerCreditAppliedAmount, cancellationToken);
         ApplyPayment(invoice);
         ApplyStockDelta(invoice.Items, parts);
 
@@ -225,8 +233,21 @@ public sealed class SalesInvoiceService : ISalesInvoiceService
             sourceRequest.UpdatedAt = DateTime.UtcNow;
         }
 
-        _db.SalesInvoices.Add(invoice);
-        await _db.SaveChangesAsync(cancellationToken);
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            _db.SalesInvoices.Add(invoice);
+            await _db.SaveChangesAsync(cancellationToken);
+
+            await ApplyCustomerCreditMovementsAsync(invoice, cancellationToken);
+            await _db.SaveChangesAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (CustomerCreditValidationException exception)
+        {
+            throw new SalesInvoiceValidationException(exception.Message);
+        }
 
         var savedInvoice = await GetInvoiceWithDetailsAsync(invoice.SalesInvoiceId, cancellationToken) ?? invoice;
         savedInvoice.EmailSent = await TrySendInvoiceEmailAsync(savedInvoice, cancellationToken);
@@ -420,6 +441,23 @@ public sealed class SalesInvoiceService : ISalesInvoiceService
         invoice.TotalAmount = invoice.Subtotal - invoice.DiscountAmount + invoice.TaxAmount;
     }
 
+    private async Task ValidateCustomerCreditAsync(
+        int customerId,
+        decimal customerCreditAppliedAmount,
+        CancellationToken cancellationToken)
+    {
+        if (customerCreditAppliedAmount < 0)
+        {
+            throw new SalesInvoiceValidationException("Applied customer credit cannot be negative.");
+        }
+
+        var creditBalance = await _customerCredits.GetBalanceAsync(customerId, cancellationToken);
+        if (customerCreditAppliedAmount > creditBalance)
+        {
+            throw new SalesInvoiceValidationException("Applied customer credit is more than the customer's available credit.");
+        }
+    }
+
     private static void ApplyPayment(SalesInvoice invoice)
     {
         if (invoice.PaidAmount < 0)
@@ -427,12 +465,12 @@ public sealed class SalesInvoiceService : ISalesInvoiceService
             throw new SalesInvoiceValidationException("Paid amount cannot be negative.");
         }
 
-        if (invoice.PaidAmount > invoice.TotalAmount)
-        {
-            invoice.PaidAmount = invoice.TotalAmount;
-        }
+        invoice.CustomerCreditAppliedAmount = Math.Min(invoice.CustomerCreditAppliedAmount, invoice.TotalAmount);
 
-        invoice.CreditAmount = invoice.TotalAmount - invoice.PaidAmount;
+        var payableAmount = Math.Max(invoice.TotalAmount - invoice.CustomerCreditAppliedAmount, 0m);
+        invoice.CreditAmount = Math.Max(payableAmount - invoice.PaidAmount, 0m);
+        invoice.ReturnAmount = Math.Max(invoice.PaidAmount - payableAmount, 0m);
+        invoice.CustomerCreditAddedAmount = invoice.ReturnAmount;
         invoice.PaymentStatus = invoice.CreditAmount <= 0
             ? SalesInvoicePaymentStatus.Paid
             : invoice.PaidAmount > 0
@@ -444,6 +482,27 @@ public sealed class SalesInvoiceService : ISalesInvoiceService
         {
             invoice.DueDate = DateTime.UtcNow.AddMonths(1);
         }
+    }
+
+    private async Task ApplyCustomerCreditMovementsAsync(
+        SalesInvoice invoice,
+        CancellationToken cancellationToken)
+    {
+        await _customerCredits.ApplyCreditAsync(
+            invoice.CustomerId,
+            invoice.CustomerCreditAppliedAmount,
+            nameof(SalesInvoice),
+            invoice.SalesInvoiceId,
+            $"Credit applied to sales invoice {invoice.InvoiceNumber}.",
+            cancellationToken);
+
+        await _customerCredits.AddCreditAsync(
+            invoice.CustomerId,
+            invoice.CustomerCreditAddedAmount,
+            nameof(SalesInvoice),
+            invoice.SalesInvoiceId,
+            $"Overpayment stored from sales invoice {invoice.InvoiceNumber}.",
+            cancellationToken);
     }
 
     private static void ApplyStockDelta(
@@ -551,7 +610,9 @@ public sealed class SalesInvoiceService : ISalesInvoiceService
                <table role="presentation" cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin-bottom:20px;">
                  {BuildTotalRow("Subtotal", invoice.Subtotal)}
                  {BuildTotalRow("Loyalty discount", -invoice.DiscountAmount)}
+                 {BuildTotalRow("Customer credit applied", -invoice.CustomerCreditAppliedAmount)}
                  {BuildTotalRow("Paid", -invoice.PaidAmount)}
+                 {BuildTotalRow("Stored customer credit", invoice.CustomerCreditAddedAmount)}
                  <tr>
                    <td style="padding:12px 0;border-top:2px solid #111827;color:#111827;font-size:16px;font-weight:900;">Balance</td>
                    <td align="right" style="padding:12px 0;border-top:2px solid #111827;color:#ef1f2d;font-size:18px;font-weight:900;">{FormatMoney(invoice.CreditAmount)}</td>
@@ -586,8 +647,10 @@ public sealed class SalesInvoiceService : ISalesInvoiceService
         builder.AppendLine();
         builder.AppendLine($"Subtotal: {FormatMoney(invoice.Subtotal)}");
         builder.AppendLine($"Discount: {FormatMoney(invoice.DiscountAmount)}");
+        builder.AppendLine($"Customer credit applied: {FormatMoney(invoice.CustomerCreditAppliedAmount)}");
         builder.AppendLine($"Paid: {FormatMoney(invoice.PaidAmount)}");
         builder.AppendLine($"Balance: {FormatMoney(invoice.CreditAmount)}");
+        builder.AppendLine($"Stored customer credit: {FormatMoney(invoice.CustomerCreditAddedAmount)}");
         return builder.ToString();
     }
 
@@ -630,7 +693,10 @@ public sealed class SalesInvoiceService : ISalesInvoiceService
             invoice.TaxAmount,
             invoice.TotalAmount,
             invoice.PaidAmount,
+            invoice.CustomerCreditAppliedAmount,
             invoice.CreditAmount,
+            invoice.ReturnAmount,
+            invoice.CustomerCreditAddedAmount,
             invoice.PaymentStatus,
             invoice.PaymentMethod,
             invoice.DueDate,

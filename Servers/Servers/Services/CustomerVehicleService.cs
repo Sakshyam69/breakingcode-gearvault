@@ -131,7 +131,11 @@ public sealed class CustomerVehicleService : ICustomerVehicleService
                 user.FullName,
                 user.Email,
                 user.Phone,
-                _db.CustomerVehicles.Count(vehicle => vehicle.CustomerId == user.Id && vehicle.IsActive)))
+                _db.CustomerVehicles.Count(vehicle => vehicle.CustomerId == user.Id && vehicle.IsActive),
+                _db.CustomerCreditAccounts
+                    .Where(account => account.CustomerId == user.Id)
+                    .Select(account => account.Balance)
+                    .FirstOrDefault()))
             .ToArrayAsync(cancellationToken);
 
         return customers;

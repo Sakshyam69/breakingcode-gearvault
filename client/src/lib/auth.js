@@ -263,6 +263,63 @@ export async function createSalesInvoiceFromPartRequest(partRequestId, invoice) 
   })
 }
 
+export async function getMyServiceAppointments() {
+  return sendAuthenticatedRequest('/api/service-appointments/me')
+}
+
+export async function createMyServiceAppointment(appointment) {
+  return sendAuthenticatedRequest('/api/service-appointments/me', {
+    method: 'POST',
+    body: JSON.stringify(appointment),
+  })
+}
+
+export async function cancelMyServiceAppointment(serviceAppointmentId, cancellationReason = '') {
+  return sendAuthenticatedRequest(`/api/service-appointments/me/${serviceAppointmentId}/cancel`, {
+    method: 'PUT',
+    body: JSON.stringify({ cancellationReason }),
+  })
+}
+
+export async function getServiceAppointments({ query = '', status = '', date = '' } = {}) {
+  const params = new URLSearchParams()
+  if (query) {
+    params.set('query', query)
+  }
+  if (status) {
+    params.set('status', status)
+  }
+  if (date) {
+    params.set('date', date)
+  }
+
+  const queryString = params.toString()
+  return sendAuthenticatedRequest(`/api/service-appointments${queryString ? `?${queryString}` : ''}`)
+}
+
+export async function updateServiceAppointmentStatus(serviceAppointmentId, update) {
+  return sendAuthenticatedRequest(`/api/service-appointments/${serviceAppointmentId}/status`, {
+    method: 'PUT',
+    body: JSON.stringify(update),
+  })
+}
+
+export async function getBookingInvoices(query = '') {
+  const queryString = query ? `?query=${encodeURIComponent(query)}` : ''
+  return sendAuthenticatedRequest(`/api/booking-invoices${queryString}`)
+}
+
+export async function getMyBookingInvoices() {
+  return sendAuthenticatedRequest('/api/booking-invoices/me')
+}
+
+export async function createBookingInvoice(invoice) {
+  return sendAuthenticatedRequest('/api/booking-invoices', {
+    method: 'POST',
+    body: JSON.stringify(invoice),
+  })
+}
+
 export async function getMyNotifications() {
   return sendAuthenticatedRequest('/api/notifications/me')
 }

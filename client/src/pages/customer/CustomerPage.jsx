@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom'
 import { CustomerVehicleManagement } from '../../components/common/CustomerVehicleWorkspace'
 import { CustomerInvoiceHistory } from '../../components/customer/CustomerInvoiceHistory'
 import { CustomerPartRequests } from '../../components/customer/CustomerPartRequests'
+import { CustomerServiceBookings } from '../../components/customer/CustomerServiceBookings'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { customerSidebarMenu } from '../../components/dashboard/menus/customerSidebarMenu'
 import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
@@ -21,7 +22,7 @@ const customerPages = {
   '/customer/bookings': {
     title: 'Bookings',
     subtitle: 'Request, review, and manage service bookings.',
-    content: <UnderDevelopment role="Customer bookings" />,
+    content: <CustomerServiceBookings />,
   },
   '/customer/part-requests': {
     title: 'Part Requests',

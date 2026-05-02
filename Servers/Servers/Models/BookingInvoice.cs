@@ -1,6 +1,6 @@
 namespace Servers.Models;
 
-public enum SalesInvoicePaymentStatus
+public enum BookingInvoicePaymentStatus
 {
     Paid,
     Credit,
@@ -9,7 +9,7 @@ public enum SalesInvoicePaymentStatus
     Cancelled
 }
 
-public enum SalesInvoicePaymentMethod
+public enum BookingInvoicePaymentMethod
 {
     Cash,
     Card,
@@ -17,11 +17,15 @@ public enum SalesInvoicePaymentMethod
     Credit
 }
 
-public sealed class SalesInvoice
+public sealed class BookingInvoice
 {
-    public int SalesInvoiceId { get; set; }
+    public int BookingInvoiceId { get; set; }
 
     public string InvoiceNumber { get; set; } = string.Empty;
+
+    public int ServiceAppointmentId { get; set; }
+
+    public ServiceAppointment ServiceAppointment { get; set; } = null!;
 
     public int CustomerId { get; set; }
 
@@ -31,17 +35,11 @@ public sealed class SalesInvoice
 
     public User Staff { get; set; } = null!;
 
-    public int? SourcePartRequestId { get; set; }
-
-    public PartRequest? SourcePartRequest { get; set; }
-
     public DateTime InvoiceDate { get; set; } = DateTime.UtcNow;
 
-    public decimal Subtotal { get; set; }
+    public decimal ServiceCharge { get; set; }
 
     public decimal DiscountAmount { get; set; }
-
-    public string DiscountReason { get; set; } = string.Empty;
 
     public decimal TaxAmount { get; set; }
 
@@ -57,11 +55,17 @@ public sealed class SalesInvoice
 
     public decimal CustomerCreditAddedAmount { get; set; }
 
-    public SalesInvoicePaymentStatus PaymentStatus { get; set; } = SalesInvoicePaymentStatus.Paid;
+    public BookingInvoicePaymentStatus PaymentStatus { get; set; } = BookingInvoicePaymentStatus.Paid;
 
-    public SalesInvoicePaymentMethod PaymentMethod { get; set; } = SalesInvoicePaymentMethod.Cash;
+    public BookingInvoicePaymentMethod PaymentMethod { get; set; } = BookingInvoicePaymentMethod.Cash;
 
     public DateTime? DueDate { get; set; }
+
+    public string WorkSummary { get; set; } = string.Empty;
+
+    public string DiagnosisNote { get; set; } = string.Empty;
+
+    public string RecommendationNote { get; set; } = string.Empty;
 
     public string Notes { get; set; } = string.Empty;
 
@@ -72,6 +76,4 @@ public sealed class SalesInvoice
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }
-
-    public List<SalesInvoiceItem> Items { get; set; } = [];
 }

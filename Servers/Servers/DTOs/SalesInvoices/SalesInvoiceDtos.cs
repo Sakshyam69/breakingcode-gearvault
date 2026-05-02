@@ -15,6 +15,9 @@ public sealed class CreateSalesInvoiceRequest
     [Range(0, 999999999)]
     public decimal PaidAmount { get; set; }
 
+    [Range(0, 999999999)]
+    public decimal CustomerCreditAppliedAmount { get; set; }
+
     public SalesInvoicePaymentMethod PaymentMethod { get; set; } = SalesInvoicePaymentMethod.Cash;
 
     public DateTime? DueDate { get; set; }
@@ -31,6 +34,9 @@ public sealed class CreateSalesInvoiceFromPartRequestRequest
 {
     [Range(0, 999999999)]
     public decimal PaidAmount { get; set; }
+
+    [Range(0, 999999999)]
+    public decimal CustomerCreditAppliedAmount { get; set; }
 
     public SalesInvoicePaymentMethod PaymentMethod { get; set; } = SalesInvoicePaymentMethod.Cash;
 
@@ -79,7 +85,10 @@ public sealed record SalesInvoiceResponse(
     decimal TaxAmount,
     decimal TotalAmount,
     decimal PaidAmount,
+    decimal CustomerCreditAppliedAmount,
     decimal CreditAmount,
+    decimal ReturnAmount,
+    decimal CustomerCreditAddedAmount,
     SalesInvoicePaymentStatus PaymentStatus,
     SalesInvoicePaymentMethod PaymentMethod,
     DateTime? DueDate,

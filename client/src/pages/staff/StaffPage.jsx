@@ -7,6 +7,7 @@ import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
 import { CustomerRegistration } from '../../components/staff/CustomerRegistration'
 import { SalesInvoiceManagement } from '../../components/staff/SalesInvoiceManagement'
 import { StaffPartRequestManagement } from '../../components/staff/StaffPartRequestManagement'
+import { StaffServiceBookingManagement } from '../../components/staff/StaffServiceBookingManagement'
 import { DashboardStaff } from '../dashboard/DashboardStaff'
 
 const staffPages = {
@@ -43,7 +44,7 @@ const staffPages = {
   '/staff/bookings': {
     title: 'Bookings',
     subtitle: 'Review and manage customer service bookings.',
-    content: <UnderDevelopment role="Staff bookings" />,
+    content: <StaffServiceBookingManagement />,
   },
   '/staff/settings': {
     title: 'Settings',

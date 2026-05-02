@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Servers.Data;
@@ -11,9 +12,11 @@ using Servers.Data;
 namespace Servers.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260502060006_LinkServiceAppointmentsToSalesInvoices")]
+    partial class LinkServiceAppointmentsToSalesInvoices
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,234 +24,6 @@ namespace Servers.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Servers.Models.BookingInvoice", b =>
-                {
-                    b.Property<int>("BookingInvoiceId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("BookingInvoiceId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("NOW()");
-
-                    b.Property<decimal>("CreditAmount")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<decimal>("CustomerCreditAddedAmount")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<decimal>("CustomerCreditAppliedAmount")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("DiagnosisNote")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<decimal>("DiscountAmount")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("EmailSent")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<DateTime>("InvoiceDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("InvoiceNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<bool>("IsCancelled")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<decimal>("PaidAmount")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<string>("RecommendationNote")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<decimal>("ReturnAmount")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<int>("ServiceAppointmentId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("ServiceCharge")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<int>("StaffId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("TaxAmount")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("WorkSummary")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.HasKey("BookingInvoiceId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("InvoiceDate");
-
-                    b.HasIndex("InvoiceNumber")
-                        .IsUnique();
-
-                    b.HasIndex("IsCancelled");
-
-                    b.HasIndex("PaymentStatus");
-
-                    b.HasIndex("ServiceAppointmentId")
-                        .IsUnique();
-
-                    b.HasIndex("StaffId");
-
-                    b.ToTable("BookingInvoices", (string)null);
-                });
-
-            modelBuilder.Entity("Servers.Models.CustomerCreditAccount", b =>
-                {
-                    b.Property<int>("CustomerCreditAccountId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CustomerCreditAccountId"));
-
-                    b.Property<decimal>("Balance")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("NOW()");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("CustomerCreditAccountId");
-
-                    b.HasIndex("CustomerId")
-                        .IsUnique();
-
-                    b.ToTable("CustomerCreditAccounts", (string)null);
-                });
-
-            modelBuilder.Entity("Servers.Models.CustomerCreditTransaction", b =>
-                {
-                    b.Property<int>("CustomerCreditTransactionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CustomerCreditTransactionId"));
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("NOW()");
-
-                    b.Property<int>("CustomerCreditAccountId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<int>("SourceId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("SourceType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.HasKey("CustomerCreditTransactionId");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("CustomerCreditAccountId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("SourceId");
-
-                    b.HasIndex("SourceType");
-
-                    b.ToTable("CustomerCreditTransactions", (string)null);
-                });
 
             modelBuilder.Entity("Servers.Models.CustomerVehicle", b =>
                 {
@@ -796,18 +571,6 @@ namespace Servers.Migrations
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)");
 
-                    b.Property<decimal>("CustomerCreditAddedAmount")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<decimal>("CustomerCreditAppliedAmount")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)")
-                        .HasDefaultValue(0m);
-
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
@@ -860,13 +623,10 @@ namespace Servers.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
-                    b.Property<decimal>("ReturnAmount")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)")
-                        .HasDefaultValue(0m);
-
                     b.Property<int?>("SourcePartRequestId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("SourceServiceAppointmentId")
                         .HasColumnType("integer");
 
                     b.Property<int>("StaffId")
@@ -901,6 +661,8 @@ namespace Servers.Migrations
                     b.HasIndex("PaymentStatus");
 
                     b.HasIndex("SourcePartRequestId");
+
+                    b.HasIndex("SourceServiceAppointmentId");
 
                     b.HasIndex("StaffId");
 
@@ -1317,63 +1079,6 @@ namespace Servers.Migrations
                     b.ToTable("VendorDetails", (string)null);
                 });
 
-            modelBuilder.Entity("Servers.Models.BookingInvoice", b =>
-                {
-                    b.HasOne("Servers.Models.User", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Servers.Models.ServiceAppointment", "ServiceAppointment")
-                        .WithOne("BookingInvoice")
-                        .HasForeignKey("Servers.Models.BookingInvoice", "ServiceAppointmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Servers.Models.User", "Staff")
-                        .WithMany()
-                        .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("ServiceAppointment");
-
-                    b.Navigation("Staff");
-                });
-
-            modelBuilder.Entity("Servers.Models.CustomerCreditAccount", b =>
-                {
-                    b.HasOne("Servers.Models.User", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-                });
-
-            modelBuilder.Entity("Servers.Models.CustomerCreditTransaction", b =>
-                {
-                    b.HasOne("Servers.Models.CustomerCreditAccount", "Account")
-                        .WithMany("Transactions")
-                        .HasForeignKey("CustomerCreditAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Servers.Models.User", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-
-                    b.Navigation("Customer");
-                });
-
             modelBuilder.Entity("Servers.Models.CustomerVehicle", b =>
                 {
                     b.HasOne("Servers.Models.User", "CreatedByUser")
@@ -1519,6 +1224,11 @@ namespace Servers.Migrations
                         .HasForeignKey("SourcePartRequestId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Servers.Models.ServiceAppointment", "SourceServiceAppointment")
+                        .WithMany()
+                        .HasForeignKey("SourceServiceAppointmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Servers.Models.User", "Staff")
                         .WithMany()
                         .HasForeignKey("StaffId")
@@ -1528,6 +1238,8 @@ namespace Servers.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("SourcePartRequest");
+
+                    b.Navigation("SourceServiceAppointment");
 
                     b.Navigation("Staff");
                 });
@@ -1615,11 +1327,6 @@ namespace Servers.Migrations
                     b.Navigation("Vendor");
                 });
 
-            modelBuilder.Entity("Servers.Models.CustomerCreditAccount", b =>
-                {
-                    b.Navigation("Transactions");
-                });
-
             modelBuilder.Entity("Servers.Models.Part", b =>
                 {
                     b.Navigation("Details");
@@ -1633,11 +1340,6 @@ namespace Servers.Migrations
             modelBuilder.Entity("Servers.Models.SalesInvoice", b =>
                 {
                     b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("Servers.Models.ServiceAppointment", b =>
-                {
-                    b.Navigation("BookingInvoice");
                 });
 
             modelBuilder.Entity("Servers.Models.User", b =>

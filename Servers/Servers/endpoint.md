@@ -93,6 +93,26 @@ Use the `Authorization: Bearer <token>` header for every protected endpoint.
 | PUT | `http://localhost:5223/api/customer-vehicles/{vehicleId}` | Admin, Staff | Update any customer vehicle. |
 | DELETE | `http://localhost:5223/api/customer-vehicles/{vehicleId}` | Admin, Staff | Soft delete any customer vehicle. |
 
+### Service Appointment Endpoints
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/service-appointments/me` | Customer | List the logged-in customer's service appointments. |
+| POST | `http://localhost:5223/api/service-appointments/me` | Customer | Book a physical vehicle service appointment. |
+| PUT | `http://localhost:5223/api/service-appointments/me/{serviceAppointmentId}/cancel` | Customer | Cancel a pending or confirmed appointment. |
+| GET | `http://localhost:5223/api/service-appointments?query={query}&status={status}&date={date}` | Admin, Staff | Search and filter service appointments. |
+| GET | `http://localhost:5223/api/service-appointments/{serviceAppointmentId}` | Admin, Staff, Customer owner | Get one service appointment by ID. |
+| PUT | `http://localhost:5223/api/service-appointments/{serviceAppointmentId}/status` | Admin, Staff | Confirm, start, complete, reject, cancel, or mark an appointment as no-show. |
+
+### Booking Invoice Endpoints
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/booking-invoices?query={query}` | Admin, Staff | Search service booking invoices by invoice, appointment, service, customer, or vehicle. |
+| GET | `http://localhost:5223/api/booking-invoices/me` | Customer | List the logged-in customer's service booking invoices. |
+| GET | `http://localhost:5223/api/booking-invoices/{bookingInvoiceId}` | Admin, Staff, Customer owner | Get one service booking invoice by ID. |
+| POST | `http://localhost:5223/api/booking-invoices` | Admin, Staff | Create one invoice for a completed service appointment. |
+
 ## EF Core Commands
 
 Run these from this folder:

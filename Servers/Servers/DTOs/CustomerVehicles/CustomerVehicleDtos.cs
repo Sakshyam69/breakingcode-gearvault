@@ -79,4 +79,5 @@ public sealed record CustomerVehicleOwnerResponse(
     string FullName,
     string Email,
     string Phone,
-    int VehicleCount);
+    int VehicleCount,
+    decimal CreditBalance);

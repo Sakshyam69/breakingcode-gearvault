@@ -28,6 +28,14 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<CustomerVehicle> CustomerVehicles => Set<CustomerVehicle>();
 
+    public DbSet<CustomerCreditAccount> CustomerCreditAccounts => Set<CustomerCreditAccount>();
+
+    public DbSet<CustomerCreditTransaction> CustomerCreditTransactions => Set<CustomerCreditTransaction>();
+
+    public DbSet<ServiceAppointment> ServiceAppointments => Set<ServiceAppointment>();
+
+    public DbSet<BookingInvoice> BookingInvoices => Set<BookingInvoice>();
+
     public DbSet<PartRequest> PartRequests => Set<PartRequest>();
 
     public DbSet<Notification> Notifications => Set<Notification>();
@@ -490,6 +498,277 @@ public sealed class AppDbContext : DbContext
             entity.HasIndex(vehicle => vehicle.Model);
         });
 
+        modelBuilder.Entity<CustomerCreditAccount>(entity =>
+        {
+            entity.ToTable("CustomerCreditAccounts");
+            entity.HasKey(account => account.CustomerCreditAccountId);
+
+            entity.Property(account => account.Balance)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.Property(account => account.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            entity.HasOne(account => account.Customer)
+                .WithMany()
+                .HasForeignKey(account => account.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(account => account.CustomerId).IsUnique();
+        });
+
+        modelBuilder.Entity<CustomerCreditTransaction>(entity =>
+        {
+            entity.ToTable("CustomerCreditTransactions");
+            entity.HasKey(transaction => transaction.CustomerCreditTransactionId);
+
+            entity.Property(transaction => transaction.Type)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(transaction => transaction.Amount)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(transaction => transaction.SourceType)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(transaction => transaction.Notes)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(transaction => transaction.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            entity.HasOne(transaction => transaction.Account)
+                .WithMany(account => account.Transactions)
+                .HasForeignKey(transaction => transaction.CustomerCreditAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(transaction => transaction.Customer)
+                .WithMany()
+                .HasForeignKey(transaction => transaction.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(transaction => transaction.CustomerCreditAccountId);
+            entity.HasIndex(transaction => transaction.CustomerId);
+            entity.HasIndex(transaction => transaction.SourceType);
+            entity.HasIndex(transaction => transaction.SourceId);
+            entity.HasIndex(transaction => transaction.CreatedAt);
+        });
+
+        modelBuilder.Entity<ServiceAppointment>(entity =>
+        {
+            entity.ToTable("ServiceAppointments");
+            entity.HasKey(appointment => appointment.ServiceAppointmentId);
+
+            entity.Property(appointment => appointment.AppointmentNumber)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.HasIndex(appointment => appointment.AppointmentNumber).IsUnique();
+
+            entity.Property(appointment => appointment.ServiceType)
+                .HasMaxLength(120)
+                .IsRequired();
+
+            entity.Property(appointment => appointment.CustomServiceType)
+                .HasMaxLength(120)
+                .IsRequired();
+
+            entity.Property(appointment => appointment.Urgency)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(appointment => appointment.Status)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(appointment => appointment.PreferredDate)
+                .IsRequired();
+
+            entity.Property(appointment => appointment.PreferredTimeSlot)
+                .HasMaxLength(80)
+                .IsRequired();
+
+            entity.Property(appointment => appointment.ProblemDescription)
+                .HasMaxLength(800)
+                .IsRequired();
+
+            entity.Property(appointment => appointment.CustomerNote)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(appointment => appointment.StaffNote)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(appointment => appointment.DiagnosisNote)
+                .HasMaxLength(800)
+                .IsRequired();
+
+            entity.Property(appointment => appointment.CompletionNote)
+                .HasMaxLength(800)
+                .IsRequired();
+
+            entity.Property(appointment => appointment.CancelledByRole)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(appointment => appointment.CancellationReason)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(appointment => appointment.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            entity.HasOne(appointment => appointment.Customer)
+                .WithMany()
+                .HasForeignKey(appointment => appointment.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(appointment => appointment.Vehicle)
+                .WithMany()
+                .HasForeignKey(appointment => appointment.VehicleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(appointment => appointment.AssignedStaff)
+                .WithMany()
+                .HasForeignKey(appointment => appointment.AssignedStaffId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(appointment => appointment.CustomerId);
+            entity.HasIndex(appointment => appointment.VehicleId);
+            entity.HasIndex(appointment => appointment.AssignedStaffId);
+            entity.HasIndex(appointment => appointment.Status);
+            entity.HasIndex(appointment => appointment.Urgency);
+            entity.HasIndex(appointment => appointment.PreferredDate);
+            entity.HasIndex(appointment => appointment.CreatedAt);
+        });
+
+        modelBuilder.Entity<BookingInvoice>(entity =>
+        {
+            entity.ToTable("BookingInvoices");
+            entity.HasKey(invoice => invoice.BookingInvoiceId);
+
+            entity.Property(invoice => invoice.InvoiceNumber)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.HasIndex(invoice => invoice.InvoiceNumber).IsUnique();
+            entity.HasIndex(invoice => invoice.ServiceAppointmentId).IsUnique();
+
+            entity.Property(invoice => invoice.InvoiceDate)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.ServiceCharge)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.DiscountAmount)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.TaxAmount)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.TotalAmount)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.PaidAmount)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.CustomerCreditAppliedAmount)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.CreditAmount)
+                .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.ReturnAmount)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.CustomerCreditAddedAmount)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.PaymentStatus)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.PaymentMethod)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.WorkSummary)
+                .HasMaxLength(1000)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.DiagnosisNote)
+                .HasMaxLength(1000)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.RecommendationNote)
+                .HasMaxLength(1000)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.Notes)
+                .HasMaxLength(1000)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.EmailSent)
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.IsCancelled)
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            entity.HasOne(invoice => invoice.ServiceAppointment)
+                .WithOne(appointment => appointment.BookingInvoice)
+                .HasForeignKey<BookingInvoice>(invoice => invoice.ServiceAppointmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(invoice => invoice.Customer)
+                .WithMany()
+                .HasForeignKey(invoice => invoice.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(invoice => invoice.Staff)
+                .WithMany()
+                .HasForeignKey(invoice => invoice.StaffId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(invoice => invoice.CustomerId);
+            entity.HasIndex(invoice => invoice.StaffId);
+            entity.HasIndex(invoice => invoice.InvoiceDate);
+            entity.HasIndex(invoice => invoice.PaymentStatus);
+            entity.HasIndex(invoice => invoice.IsCancelled);
+        });
+
         modelBuilder.Entity<PartRequest>(entity =>
         {
             entity.ToTable("PartRequests");
@@ -638,8 +917,23 @@ public sealed class AppDbContext : DbContext
                 .HasPrecision(12, 2)
                 .IsRequired();
 
+            entity.Property(invoice => invoice.CustomerCreditAppliedAmount)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0)
+                .IsRequired();
+
             entity.Property(invoice => invoice.CreditAmount)
                 .HasPrecision(12, 2)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.ReturnAmount)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.Property(invoice => invoice.CustomerCreditAddedAmount)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0)
                 .IsRequired();
 
             entity.Property(invoice => invoice.PaymentStatus)

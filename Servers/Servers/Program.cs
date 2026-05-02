@@ -85,6 +85,9 @@ builder.Services.AddScoped<ICustomerVehicleService, CustomerVehicleService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IPartRequestService, PartRequestService>();
 builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
+builder.Services.AddScoped<IServiceAppointmentService, ServiceAppointmentService>();
+builder.Services.AddScoped<IBookingInvoiceService, BookingInvoiceService>();
+builder.Services.AddScoped<ICustomerCreditService, CustomerCreditService>();
 builder.Services
     .AddAuthentication(AuthSchemes.Bearer)
     .AddScheme<AuthenticationSchemeOptions, HmacTokenAuthenticationHandler>(AuthSchemes.Bearer, options => { });

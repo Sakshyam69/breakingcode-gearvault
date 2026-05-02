@@ -5,6 +5,9 @@ export function InvoiceDocument({ invoice }) {
     return null
   }
 
+  const isBookingInvoice = invoice.invoiceType === 'booking'
+  const storedCredit = Number(invoice.customerCreditAddedAmount || 0)
+
   return (
     <article className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
       <header className="relative overflow-hidden bg-black text-white">
@@ -27,11 +30,11 @@ export function InvoiceDocument({ invoice }) {
                 </div>
               </div>
               <div className="mt-8">
-                <p className="text-sm font-semibold text-slate-300">Your AutoCare sales invoice is ready.</p>
+                <p className="text-sm font-semibold text-slate-300">Your AutoCare {isBookingInvoice ? 'service' : 'sales'} invoice is ready.</p>
               </div>
             </div>
             <div className="text-left sm:text-right">
-              <p className="text-xs font-black uppercase text-red-200">Sales Invoice</p>
+              <p className="text-xs font-black uppercase text-red-200">{isBookingInvoice ? 'Booking Invoice' : 'Sales Invoice'}</p>
               <h2 className="mt-2 text-3xl font-black leading-tight">{invoice.invoiceNumber}</h2>
               <p className="mt-2 text-sm font-semibold text-slate-300">{formatDate(invoice.invoiceDate)}</p>
             </div>
@@ -43,7 +46,12 @@ export function InvoiceDocument({ invoice }) {
       <section className="grid gap-3 p-5 sm:grid-cols-3">
         <SummaryCard label="Customer" value={invoice.customerName} detail={invoice.customerEmail} />
         <SummaryCard label="Payment" value={invoice.paymentStatus} detail={`Via ${invoice.paymentMethod}`} />
-        <SummaryCard label="Balance" value={formatMoney(invoice.creditAmount)} detail={invoice.emailSent ? 'Email sent' : 'Email not sent'} tone="red" />
+        <SummaryCard
+          label={storedCredit > 0 ? 'Stored Credit' : 'Balance'}
+          value={formatMoney(storedCredit > 0 ? storedCredit : invoice.creditAmount)}
+          detail={invoice.emailSent ? 'Email sent' : 'Email not sent'}
+          tone={storedCredit > 0 ? 'green' : 'red'}
+        />
       </section>
 
       <section className="px-5 pb-5">
@@ -51,7 +59,7 @@ export function InvoiceDocument({ invoice }) {
           <table className="min-w-[620px] w-full text-left">
             <thead className="bg-slate-50 text-xs font-black uppercase text-slate-500">
               <tr>
-                <th className="px-4 py-3">Part</th>
+                <th className="px-4 py-3">{isBookingInvoice ? 'Service' : 'Part'}</th>
                 <th className="px-4 py-3">Qty</th>
                 <th className="px-4 py-3">Rate</th>
                 <th className="px-4 py-3 text-right">Total</th>
@@ -84,9 +92,11 @@ export function InvoiceDocument({ invoice }) {
           <div className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm font-bold text-slate-700">
             <InvoiceTotalRow label="Subtotal" value={formatMoney(invoice.subtotal)} />
             <InvoiceTotalRow label="Loyalty discount" value={formatMoney(invoice.discountAmount)} />
+            <InvoiceTotalRow label="Customer credit used" value={formatMoney(invoice.customerCreditAppliedAmount)} />
             <InvoiceTotalRow label="Paid" value={formatMoney(invoice.paidAmount)} />
             <InvoiceTotalRow label="Total" value={formatMoney(invoice.totalAmount)} strong />
             <InvoiceTotalRow label="Balance" value={formatMoney(invoice.creditAmount)} danger />
+            <InvoiceTotalRow label="Return / saved credit" value={formatMoney(storedCredit)} success={storedCredit > 0} />
           </div>
         </div>
 
@@ -102,7 +112,11 @@ export function InvoiceDocument({ invoice }) {
 }
 
 function SummaryCard({ detail, label, tone = 'slate', value }) {
-  const toneClass = tone === 'red' ? 'border-red-100 bg-red-50' : 'border-slate-200 bg-slate-50'
+  const toneClass = tone === 'red'
+    ? 'border-red-100 bg-red-50'
+    : tone === 'green'
+      ? 'border-emerald-100 bg-emerald-50'
+      : 'border-slate-200 bg-slate-50'
   return (
     <div className={`rounded-lg border px-4 py-3 ${toneClass}`}>
       <p className="text-xs font-black uppercase text-slate-500">{label}</p>
@@ -112,9 +126,9 @@ function SummaryCard({ detail, label, tone = 'slate', value }) {
   )
 }
 
-function InvoiceTotalRow({ danger = false, label, strong = false, value }) {
+function InvoiceTotalRow({ danger = false, label, strong = false, success = false, value }) {
   return (
-    <div className={`flex justify-between gap-4 ${danger ? 'text-red-600' : strong ? 'text-slate-950' : ''}`}>
+    <div className={`flex justify-between gap-4 ${danger ? 'text-red-600' : success ? 'text-emerald-700' : strong ? 'text-slate-950' : ''}`}>
       <span>{label}</span>
       <span>{value}</span>
     </div>

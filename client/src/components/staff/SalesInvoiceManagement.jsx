@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom'
 import {
   createSalesInvoice,
   createSalesInvoiceFromPartRequest,
+  getBookingInvoices,
   getParts,
   getSalesInvoices,
   searchVehicleCustomers,
@@ -15,6 +16,7 @@ const initialFormData = {
   sourcePartRequestId: null,
   sourcePartRequest: null,
   paidAmount: '',
+  customerCreditAppliedAmount: '',
   paymentMethod: 'Cash',
   dueDate: '',
   notes: '',
@@ -24,11 +26,13 @@ const initialFormData = {
 export function SalesInvoiceManagement() {
   const location = useLocation()
   const [invoices, setInvoices] = useState([])
+  const [bookingInvoices, setBookingInvoices] = useState([])
   const [customers, setCustomers] = useState([])
   const [parts, setParts] = useState([])
   const [formData, setFormData] = useState(initialFormData)
   const [selectedInvoice, setSelectedInvoice] = useState(null)
   const [mode, setMode] = useState('list')
+  const [invoiceType, setInvoiceType] = useState('parts')
   const [query, setQuery] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
@@ -41,14 +45,16 @@ export function SalesInvoiceManagement() {
 
     async function loadData() {
       try {
-        const [invoiceData, customerData, partData] = await Promise.all([
+        const [invoiceData, bookingInvoiceData, customerData, partData] = await Promise.all([
           getSalesInvoices(),
+          getBookingInvoices(),
           searchVehicleCustomers(''),
           getParts(),
         ])
 
         if (isMounted) {
           setInvoices(invoiceData)
+          setBookingInvoices(bookingInvoiceData)
           setCustomers(customerData)
           setParts(partData)
         }
@@ -90,9 +96,9 @@ export function SalesInvoiceManagement() {
         unitPrice: '',
       }],
     })
+    setMessage(`Creating invoice for request #${partRequest.partRequestId}.`)
     setMode('create')
     setSelectedInvoice(null)
-    setMessage(`Creating invoice for request #${partRequest.partRequestId}.`)
   }, [location.state])
 
   const filteredInvoices = useMemo(() => {
@@ -109,6 +115,23 @@ export function SalesInvoiceManagement() {
       ...(invoice.items ?? []).flatMap((item) => [item.partName, item.partNumber]),
     ].some((value) => value?.toLowerCase().includes(normalizedQuery)))
   }, [invoices, query])
+
+  const filteredBookingInvoices = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase()
+    if (!normalizedQuery) {
+      return bookingInvoices
+    }
+
+    return bookingInvoices.filter((invoice) => [
+      invoice.invoiceNumber,
+      invoice.appointmentNumber,
+      invoice.serviceType,
+      invoice.customerName,
+      invoice.customerEmail,
+      invoice.vehicleLabel,
+      invoice.paymentStatus,
+    ].some((value) => value?.toLowerCase().includes(normalizedQuery)))
+  }, [bookingInvoices, query])
 
   const totals = useMemo(() => calculateTotals(formData.items, parts), [formData.items, parts])
 
@@ -193,6 +216,7 @@ export function SalesInvoiceManagement() {
         : 'Sales invoice created, but email was not sent. Check Brevo settings.')
       setFormData(initialFormData)
       setParts(await getParts())
+      setCustomers(await searchVehicleCustomers(''))
     } catch (exception) {
       setError(exception.message)
     } finally {
@@ -205,10 +229,32 @@ export function SalesInvoiceManagement() {
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-black uppercase text-red-600">Sales</p>
-            <h2 className="mt-1 text-2xl font-black text-slate-950">Sales Invoices</h2>
+            <p className="text-xs font-black uppercase text-red-600">Invoices</p>
+            <h2 className="mt-1 text-2xl font-black text-slate-950">{invoiceType === 'parts' ? 'Part Sales Invoices' : 'Booking Invoices'}</h2>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+              <button
+                className={`min-h-10 rounded-md px-3 text-sm font-black transition ${invoiceType === 'parts' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-600 hover:text-slate-950'}`}
+                type="button"
+                onClick={() => {
+                  setInvoiceType('parts')
+                  setMode('list')
+                }}
+              >
+                Part sales invoice
+              </button>
+              <button
+                className={`min-h-10 rounded-md px-3 text-sm font-black transition ${invoiceType === 'bookings' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-600 hover:text-slate-950'}`}
+                type="button"
+                onClick={() => {
+                  setInvoiceType('bookings')
+                  setMode('list')
+                }}
+              >
+                Booking invoice
+              </button>
+            </div>
             <label className="relative block min-w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
@@ -219,7 +265,7 @@ export function SalesInvoiceManagement() {
               />
             </label>
             <button
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--primary)] px-4 text-sm font-black text-white transition hover:bg-[var(--primary-hover)]"
+              className={`inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--primary)] px-4 text-sm font-black text-white transition hover:bg-[var(--primary-hover)] ${invoiceType !== 'parts' ? 'hidden' : ''}`}
               type="button"
               onClick={openCreatePanel}
             >
@@ -232,8 +278,9 @@ export function SalesInvoiceManagement() {
         {error && <Message tone="error">{error}</Message>}
         {message && <Message tone="success">{message}</Message>}
 
+        {invoiceType === 'parts' ? (
         <div className="mt-6 overflow-x-auto">
-          <table className={`${hasPanel ? 'min-w-[760px]' : 'min-w-[1040px]'} w-full text-left`}>
+          <table className={`${hasPanel ? 'min-w-[820px]' : 'min-w-[1080px]'} w-full text-left`}>
             <thead>
               <tr className="border-b border-slate-200 text-xs font-black uppercase text-slate-500">
                 <th className="py-3 pr-4">Invoice</th>
@@ -260,7 +307,7 @@ export function SalesInvoiceManagement() {
                   <td className="py-4 pr-4"><StatusPill status={invoice.paymentStatus} /></td>
                   <td className="py-4 pr-4">
                     <p className="text-sm font-black text-slate-900">{formatMoney(invoice.totalAmount)}</p>
-                    <p className="mt-1 text-xs font-semibold text-slate-500">Due {formatMoney(invoice.creditAmount)}</p>
+                    <PaymentSubline invoice={invoice} />
                   </td>
                   {!hasPanel && (
                     <td className="py-4 pr-4 text-sm font-semibold text-slate-700">{invoice.items?.length ?? 0} item(s)</td>
@@ -281,6 +328,58 @@ export function SalesInvoiceManagement() {
             </tbody>
           </table>
         </div>
+        ) : (
+        <div className="mt-6 overflow-x-auto">
+          <table className="min-w-[1080px] w-full text-left">
+            <thead>
+              <tr className="border-b border-slate-200 text-xs font-black uppercase text-slate-500">
+                <th className="py-3 pr-4">Invoice</th>
+                <th className="py-3 pr-4">Customer</th>
+                <th className="py-3 pr-4">Booking</th>
+                <th className="py-3 pr-4">Status</th>
+                <th className="py-3 pr-4">Total</th>
+                <th className="py-3">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr><td className="py-5 text-sm font-semibold text-slate-600" colSpan={6}>Loading booking invoices...</td></tr>
+              ) : filteredBookingInvoices.length > 0 ? filteredBookingInvoices.map((invoice) => (
+                <tr className="border-b border-slate-100 align-top last:border-0" key={invoice.bookingInvoiceId}>
+                  <td className="py-4 pr-4">
+                    <p className="text-sm font-black text-slate-950">{invoice.invoiceNumber}</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-500">{formatDate(invoice.invoiceDate)}</p>
+                  </td>
+                  <td className="py-4 pr-4">
+                    <p className="text-sm font-bold text-slate-800">{invoice.customerName}</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-500">{invoice.customerPhone || invoice.customerEmail}</p>
+                  </td>
+                  <td className="py-4 pr-4">
+                    <p className="text-sm font-bold text-slate-800">{invoice.serviceType}</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-500">{invoice.vehicleLabel}</p>
+                  </td>
+                  <td className="py-4 pr-4"><StatusPill status={invoice.paymentStatus} /></td>
+                  <td className="py-4 pr-4">
+                    <p className="text-sm font-black text-slate-900">{formatMoney(invoice.totalAmount)}</p>
+                    <PaymentSubline invoice={invoice} />
+                  </td>
+                  <td className="py-4">
+                    <button
+                      className="inline-flex min-h-9 items-center rounded-lg border border-slate-300 px-3 text-xs font-black text-slate-700 transition hover:bg-slate-50"
+                      type="button"
+                      onClick={() => openViewPanel(toBookingInvoiceDocument(invoice))}
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              )) : (
+                <tr><td className="py-5 text-sm font-semibold text-slate-600" colSpan={6}>No booking invoices found.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        )}
       </section>
 
       {mode === 'create' && (
@@ -317,6 +416,14 @@ function InvoiceForm({
   parts,
   totals,
 }) {
+  const selectedCustomer = customers.find((customer) => String(customer.customerId) === String(formData.customerId))
+  const creditBalance = Number(selectedCustomer?.creditBalance || 0)
+  const paymentSummary = calculatePaymentSummary(
+    totals.total,
+    formData.paidAmount,
+    formData.customerCreditAppliedAmount,
+  )
+
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <PanelHeader onClose={onClose} title="Create Sales Invoice" />
@@ -342,10 +449,13 @@ function InvoiceForm({
           <option value="">Select customer</option>
           {customers.map((customer) => (
             <option key={customer.customerId} value={customer.customerId}>
-              {customer.fullName || `Customer #${customer.customerId}`} ({customer.email})
+              {customer.fullName || `Customer #${customer.customerId}`} ({customer.email}) - credit {formatMoney(customer.creditBalance || 0)}
             </option>
           ))}
         </SelectField>
+        <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-900">
+          Available customer credit: {formatMoney(creditBalance)}
+        </div>
 
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
           <div className="flex items-center justify-between gap-3">
@@ -402,6 +512,16 @@ function InvoiceForm({
           </SelectField>
           <TextField label="Paid amount" min="0" name="paidAmount" onChange={onFieldChange} step="0.01" type="number" value={formData.paidAmount} />
         </div>
+        <TextField
+          label="Use customer credit"
+          max={creditBalance}
+          min="0"
+          name="customerCreditAppliedAmount"
+          onChange={onFieldChange}
+          step="0.01"
+          type="number"
+          value={formData.customerCreditAppliedAmount}
+        />
         <TextField label="Due date" name="dueDate" onChange={onFieldChange} type="date" value={formData.dueDate} />
         <TextareaField label="Notes" name="notes" onChange={onFieldChange} value={formData.notes} />
 
@@ -409,7 +529,9 @@ function InvoiceForm({
           <SummaryRow label="Subtotal" value={formatMoney(totals.subtotal)} />
           <SummaryRow label="Loyalty discount" value={formatMoney(totals.discount)} />
           <SummaryRow label="Total" value={formatMoney(totals.total)} strong />
-          <SummaryRow label="Credit after paid amount" value={formatMoney(Math.max(totals.total - Number(formData.paidAmount || 0), 0))} />
+          <SummaryRow label="Customer credit used" value={formatMoney(paymentSummary.creditApplied)} />
+          <SummaryRow label="Due after payment" value={formatMoney(paymentSummary.due)} />
+          <SummaryRow label="Return / saved credit" value={formatMoney(paymentSummary.returnAmount)} />
         </div>
 
         <button
@@ -507,6 +629,7 @@ function toPayload(data) {
   return {
     customerId: Number.parseInt(data.customerId, 10),
     paidAmount: Number(data.paidAmount || 0),
+    customerCreditAppliedAmount: Number(data.customerCreditAppliedAmount || 0),
     paymentMethod: data.paymentMethod,
     dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
     notes: data.notes,
@@ -517,6 +640,18 @@ function toPayload(data) {
       unitPrice: Number(item.unitPrice || 0),
       quantity: Number.parseInt(item.quantity || '0', 10),
     })),
+  }
+}
+
+function calculatePaymentSummary(total, paidAmount, customerCreditAppliedAmount) {
+  const creditApplied = Math.min(Number(customerCreditAppliedAmount || 0), Number(total || 0))
+  const payable = Math.max(Number(total || 0) - creditApplied, 0)
+  const paid = Number(paidAmount || 0)
+
+  return {
+    creditApplied,
+    due: Math.max(payable - paid, 0),
+    returnAmount: Math.max(paid - payable, 0),
   }
 }
 
@@ -551,6 +686,35 @@ function updateInvoiceItem(item, field, value, parts) {
     partName: item.partName || part.name,
     partNumber: item.partNumber || part.partNumber,
     unitPrice: item.unitPrice || String(part.sellingPrice ?? ''),
+  }
+}
+
+function PaymentSubline({ invoice }) {
+  if (Number(invoice.returnAmount || 0) > 0) {
+    return <p className="mt-1 text-xs font-semibold text-emerald-700">Return {formatMoney(invoice.returnAmount)}</p>
+  }
+
+  if (Number(invoice.customerCreditAddedAmount || 0) > 0) {
+    return <p className="mt-1 text-xs font-semibold text-emerald-700">Saved credit {formatMoney(invoice.customerCreditAddedAmount)}</p>
+  }
+
+  return <p className="mt-1 text-xs font-semibold text-slate-500">Due {formatMoney(invoice.creditAmount)}</p>
+}
+
+function toBookingInvoiceDocument(invoice) {
+  return {
+    ...invoice,
+    invoiceType: 'booking',
+    subtotal: invoice.serviceCharge,
+    discountReason: '',
+    items: [{
+      salesInvoiceItemId: `booking-${invoice.bookingInvoiceId}`,
+      partName: invoice.serviceType,
+      partNumber: invoice.appointmentNumber || invoice.vehicleLabel,
+      quantity: 1,
+      unitPrice: invoice.serviceCharge,
+      lineTotal: invoice.serviceCharge,
+    }],
   }
 }
 
