@@ -11,6 +11,7 @@ import {
   searchVehicleCustomers,
   updateCustomerVehicle,
   updateMyVehicle,
+  uploadVehicleImage,
 } from '../../lib/auth'
 
 const initialFormData = {
@@ -20,6 +21,7 @@ const initialFormData = {
   year: '',
   color: '',
   fuelType: '',
+  imageUrl: '',
   engineNumber: '',
   chassisNumber: '',
   mileage: '',
@@ -37,6 +39,7 @@ export function CustomerVehicleManagement() {
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [imageUploadStatus, setImageUploadStatus] = useState('')
   const hasSidePanel = mode !== 'list'
 
   useEffect(() => {
@@ -74,6 +77,7 @@ export function CustomerVehicleManagement() {
     setFormData(initialFormData)
     setError('')
     setMessage('')
+    setImageUploadStatus('')
   }
 
   function openEditPanel(vehicle) {
@@ -82,6 +86,7 @@ export function CustomerVehicleManagement() {
     setFormData(toVehicleForm(vehicle))
     setError('')
     setMessage('')
+    setImageUploadStatus('')
   }
 
   function openViewPanel(vehicle) {
@@ -96,6 +101,7 @@ export function CustomerVehicleManagement() {
     setSelectedVehicle(null)
     setFormData(initialFormData)
     setError('')
+    setImageUploadStatus('')
   }
 
   function handleChange(event) {
@@ -104,6 +110,28 @@ export function CustomerVehicleManagement() {
       ...current,
       [name]: type === 'checkbox' ? checked : value,
     }))
+  }
+
+  async function handleImageChange(event) {
+    const file = event.target.files?.[0]
+    if (!file) {
+      return
+    }
+
+    setError('')
+    setImageUploadStatus('Uploading vehicle image...')
+
+    try {
+      const upload = await uploadVehicleImage(file)
+      setFormData((current) => ({
+        ...current,
+        imageUrl: upload.url,
+      }))
+      setImageUploadStatus('Vehicle image uploaded.')
+    } catch (exception) {
+      setImageUploadStatus('')
+      setError(exception.message)
+    }
   }
 
   async function handleSubmit(event) {
@@ -174,11 +202,13 @@ export function CustomerVehicleManagement() {
       onClose={closeSidePanel}
       onDelete={handleDelete}
       onEdit={openEditPanel}
+      onImageChange={handleImageChange}
       onQueryChange={setQuery}
       onSubmit={handleSubmit}
       onView={openViewPanel}
       query={query}
       selectedVehicle={selectedVehicle}
+      imageUploadStatus={imageUploadStatus}
       tableEyebrow="My vehicles"
       tableTitle="Vehicle Details"
     />
@@ -198,6 +228,7 @@ export function StaffCustomerVehicleManagement() {
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [imageUploadStatus, setImageUploadStatus] = useState('')
   const hasSidePanel = mode !== 'list'
 
   useEffect(() => {
@@ -271,6 +302,7 @@ export function StaffCustomerVehicleManagement() {
     setFormData(initialFormData)
     setError('')
     setMessage('')
+    setImageUploadStatus('')
   }
 
   function openEditPanel(vehicle) {
@@ -279,6 +311,7 @@ export function StaffCustomerVehicleManagement() {
     setFormData(toVehicleForm(vehicle))
     setError('')
     setMessage('')
+    setImageUploadStatus('')
   }
 
   function openViewPanel(vehicle) {
@@ -293,6 +326,7 @@ export function StaffCustomerVehicleManagement() {
     setSelectedVehicle(null)
     setFormData(initialFormData)
     setError('')
+    setImageUploadStatus('')
   }
 
   function handleChange(event) {
@@ -301,6 +335,28 @@ export function StaffCustomerVehicleManagement() {
       ...current,
       [name]: type === 'checkbox' ? checked : value,
     }))
+  }
+
+  async function handleImageChange(event) {
+    const file = event.target.files?.[0]
+    if (!file) {
+      return
+    }
+
+    setError('')
+    setImageUploadStatus('Uploading vehicle image...')
+
+    try {
+      const upload = await uploadVehicleImage(file)
+      setFormData((current) => ({
+        ...current,
+        imageUrl: upload.url,
+      }))
+      setImageUploadStatus('Vehicle image uploaded.')
+    } catch (exception) {
+      setImageUploadStatus('')
+      setError(exception.message)
+    }
   }
 
   async function refreshVehiclesForCurrentContext(customer = selectedCustomer) {
@@ -420,6 +476,7 @@ export function StaffCustomerVehicleManagement() {
         hasSidePanel={hasSidePanel}
         isLoading={isLoading}
         isSubmitting={isSubmitting}
+        imageUploadStatus={imageUploadStatus}
         message={message}
         mode={mode}
         onAdd={() => openCreatePanel()}
@@ -427,6 +484,7 @@ export function StaffCustomerVehicleManagement() {
         onClose={closeSidePanel}
         onDelete={handleDelete}
         onEdit={openEditPanel}
+        onImageChange={handleImageChange}
         onQueryChange={handleVehicleSearch}
         onSubmit={handleSubmit}
         onView={openViewPanel}
@@ -447,6 +505,7 @@ function VehicleWorkspaceLayout({
   hasSidePanel,
   isLoading,
   isSubmitting,
+  imageUploadStatus,
   message,
   mode,
   onAdd,
@@ -454,6 +513,7 @@ function VehicleWorkspaceLayout({
   onClose,
   onDelete,
   onEdit,
+  onImageChange,
   onQueryChange,
   onSubmit,
   onView,
@@ -496,8 +556,10 @@ function VehicleWorkspaceLayout({
             formData={formData}
             isEditing={mode === 'edit'}
             isSubmitting={isSubmitting}
+            imageUploadStatus={imageUploadStatus}
             onChange={onChange}
             onClose={onClose}
+            onImageChange={onImageChange}
             onSubmit={onSubmit}
           />
         )
@@ -574,11 +636,16 @@ function VehicleTable({
                     key={vehicle.customerVehicleId}
                   >
                     <td className="py-4 pr-4">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-black text-slate-950">{vehicle.vehicleNumber}</p>
-                        {vehicle.isPrimary && <Star className="fill-amber-400 text-amber-400" size={15} />}
+                      <div className="flex items-center gap-3">
+                        <VehicleImage imageUrl={vehicle.imageUrl} label={`${vehicle.make} ${vehicle.model}`} />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-black text-slate-950">{vehicle.vehicleNumber}</p>
+                            {vehicle.isPrimary && <Star className="fill-amber-400 text-amber-400" size={15} />}
+                          </div>
+                          <p className="mt-1 text-xs font-semibold text-slate-500">{vehicle.make} {vehicle.model}</p>
+                        </div>
                       </div>
-                      <p className="mt-1 text-xs font-semibold text-slate-500">{vehicle.make} {vehicle.model}</p>
                     </td>
                     {showCustomer && (
                       <td className="py-4 pr-4">
@@ -630,7 +697,16 @@ function VehicleTable({
   )
 }
 
-function VehicleFormPanel({ formData, isEditing, isSubmitting, onChange, onClose, onSubmit }) {
+function VehicleFormPanel({
+  formData,
+  imageUploadStatus,
+  isEditing,
+  isSubmitting,
+  onChange,
+  onClose,
+  onImageChange,
+  onSubmit,
+}) {
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <PanelHeader eyebrow="Vehicle details" icon={Car} onClose={onClose} title={isEditing ? 'Edit Vehicle' : 'Add Vehicle'} />
@@ -653,6 +729,25 @@ function VehicleFormPanel({ formData, isEditing, isSubmitting, onChange, onClose
           <TextField label="Mileage" min="0" name="mileage" onChange={onChange} type="number" value={formData.mileage} />
         </div>
 
+        <label className="grid gap-2 text-sm font-bold text-slate-700">
+          Vehicle image
+          <span className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+            {formData.imageUrl ? (
+              <img className="h-40 w-full rounded-lg object-cover" src={formData.imageUrl} alt={`${formData.make} ${formData.model}`} />
+            ) : (
+              <span className="grid h-40 place-items-center rounded-lg bg-white text-slate-400">
+                <Car size={42} />
+              </span>
+            )}
+            <input
+              accept="image/gif,image/jpeg,image/png,image/webp"
+              className="text-sm text-slate-700 file:mr-4 file:rounded-md file:border-0 file:bg-[var(--primary)] file:px-3 file:py-2 file:text-sm file:font-black file:text-white"
+              type="file"
+              onChange={onImageChange}
+            />
+            {imageUploadStatus && <span className="text-xs font-bold text-slate-500">{imageUploadStatus}</span>}
+          </span>
+        </label>
         <TextField label="Engine number" name="engineNumber" onChange={onChange} value={formData.engineNumber} />
         <TextField label="Chassis number" name="chassisNumber" onChange={onChange} value={formData.chassisNumber} />
 
@@ -705,6 +800,7 @@ function VehicleDetailsPanel({ onClose, onEdit, showCustomer, vehicle }) {
     { label: 'Year', value: vehicle.year || 'Not set' },
     { label: 'Color', value: vehicle.color || 'Not set' },
     { label: 'Fuel type', value: vehicle.fuelType || 'Not set' },
+    { label: 'Image URL', value: vehicle.imageUrl || 'Not set' },
     { label: 'Mileage', value: formatMileage(vehicle.mileage) },
     { label: 'Engine number', value: vehicle.engineNumber || 'Not set' },
     { label: 'Chassis number', value: vehicle.chassisNumber || 'Not set' },
@@ -727,6 +823,16 @@ function VehicleDetailsPanel({ onClose, onEdit, showCustomer, vehicle }) {
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <PanelHeader eyebrow="Vehicle profile" icon={UserRound} onClose={onClose} title={vehicle.vehicleNumber} />
+
+      <div className="mt-6 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+        {vehicle.imageUrl ? (
+          <img className="h-56 w-full object-cover" src={vehicle.imageUrl} alt={`${vehicle.make} ${vehicle.model}`} />
+        ) : (
+          <div className="grid h-56 place-items-center text-slate-400">
+            <Car size={52} />
+          </div>
+        )}
+      </div>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {rows.map(({ label, value }) => (
@@ -823,6 +929,18 @@ function SearchField({ onChange, placeholder, value }) {
   )
 }
 
+function VehicleImage({ imageUrl, label }) {
+  return (
+    <span className="grid h-12 w-14 shrink-0 place-items-center overflow-hidden rounded-lg bg-slate-100 text-slate-400 ring-1 ring-slate-200">
+      {imageUrl ? (
+        <img className="h-full w-full object-cover" src={imageUrl} alt={label} />
+      ) : (
+        <Car size={22} />
+      )}
+    </span>
+  )
+}
+
 function TextField({ label, min, name, onChange, required = false, type = 'text', value }) {
   return (
     <label className="grid gap-2 text-sm font-bold text-slate-700">
@@ -898,6 +1016,7 @@ function toVehicleForm(vehicle) {
     year: vehicle.year ?? '',
     color: vehicle.color ?? '',
     fuelType: vehicle.fuelType ?? '',
+    imageUrl: vehicle.imageUrl ?? '',
     engineNumber: vehicle.engineNumber ?? '',
     chassisNumber: vehicle.chassisNumber ?? '',
     mileage: vehicle.mileage ? String(vehicle.mileage) : '',

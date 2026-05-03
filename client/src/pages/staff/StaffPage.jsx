@@ -3,6 +3,7 @@ import { VendorManagement } from '../../components/admin/VendorManagement'
 import { StaffCustomerVehicleManagement } from '../../components/common/CustomerVehicleWorkspace'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { staffSidebarMenu } from '../../components/dashboard/menus/staffSidebarMenu'
+import { SettingsWorkspace } from '../../components/dashboard/SettingsWorkspace'
 import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
 import { CustomerRegistration } from '../../components/staff/CustomerRegistration'
 import { SalesInvoiceManagement } from '../../components/staff/SalesInvoiceManagement'
@@ -54,8 +55,8 @@ const staffPages = {
   },
   '/staff/settings': {
     title: 'Settings',
-    subtitle: 'Manage staff preferences and account settings.',
-    content: <UnderDevelopment role="Staff settings" />,
+    subtitle: 'Update your profile and change your account password.',
+    content: <SettingsWorkspace role="Staff" />,
   },
 }
 

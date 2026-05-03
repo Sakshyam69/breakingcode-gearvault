@@ -409,6 +409,25 @@ export async function updateProfile(profile) {
   return data
 }
 
+export async function requestPasswordChangeCode() {
+  return sendAuthenticatedRequest('/api/profile/password-change-code', {
+    method: 'POST',
+  })
+}
+
+export async function changePassword(passwordChange) {
+  const data = await sendAuthenticatedRequest('/api/profile/password', {
+    method: 'PUT',
+    body: JSON.stringify(passwordChange),
+  })
+
+  if (data?.token && data?.user) {
+    saveAuth(data)
+  }
+
+  return data
+}
+
 export async function completeAccountSetup(profile) {
   const data = await sendAuthenticatedRequest('/api/profile/complete-setup', {
     method: 'POST',
@@ -442,6 +461,16 @@ export async function uploadProfileImage(file) {
   formData.append('file', file)
 
   return sendAuthenticatedRequest('/api/uploads/profile-image', {
+    method: 'POST',
+    body: formData,
+  })
+}
+
+export async function uploadVehicleImage(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  return sendAuthenticatedRequest('/api/uploads/vehicle-image', {
     method: 'POST',
     body: formData,
   })

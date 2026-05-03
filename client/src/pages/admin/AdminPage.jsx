@@ -5,6 +5,7 @@ import { StaffManagement } from '../../components/admin/StaffManagement'
 import { VendorManagement } from '../../components/admin/VendorManagement'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { adminSidebarMenu } from '../../components/dashboard/menus/adminSidebarMenu'
+import { SettingsWorkspace } from '../../components/dashboard/SettingsWorkspace'
 import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
 import { DashboardAdmin } from '../dashboard/DashboardAdmin'
 
@@ -41,8 +42,8 @@ const adminPages = {
   },
   '/admin/settings': {
     title: 'Settings',
-    subtitle: 'Manage admin preferences and system settings.',
-    content: <UnderDevelopment role="Admin settings" />,
+    subtitle: 'Update your profile and change your account password.',
+    content: <SettingsWorkspace role="Admin" />,
   },
 }
 

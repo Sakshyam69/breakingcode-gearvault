@@ -89,35 +89,35 @@ export function CustomerReportRequests() {
     }
   }
 
+  const pendingCount = requests.filter((request) => request.status === 'Pending').length
+  const sentCount = requests.filter((request) => request.status === 'Sent').length
+
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(360px,1fr)]">
+    <div className="grid gap-6">
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-black uppercase text-[var(--primary)]">Settings</p>
-            <h2 className="mt-1 text-xl font-black text-slate-950">Customer reports</h2>
-          </div>
-          <span className="grid h-11 w-11 place-items-center rounded-lg bg-red-50 text-[var(--primary)]">
-            <FileText size={22} />
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <PanelTitle kicker="Reports" title="Request customer report" />
+          <button
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-black text-white transition hover:bg-[var(--primary-hover)]"
+            type="button"
+            onClick={() => setIsRequestOpen((current) => !current)}
+          >
+            <Send size={18} />
+            {isRequestOpen ? 'Close request' : 'Request report'}
+          </button>
         </div>
 
         {error && <Message tone="error">{error}</Message>}
         {message && <Message>{message}</Message>}
 
-        <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <button
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-black text-white transition hover:bg-[var(--primary-hover)]"
-            type="button"
-            onClick={() => setIsRequestOpen((current) => !current)}
-          >
-            <Send size={18} />
-            Request report
-          </button>
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <SummaryTile label="Total requests" value={requests.length} />
+          <SummaryTile label="Pending" value={pendingCount} tone="amber" />
+          <SummaryTile label="Sent" value={sentCount} tone="emerald" />
         </div>
 
         {isRequestOpen && (
-          <form className="mt-5 grid gap-4" onSubmit={handleSubmit}>
+          <form className="mt-5 grid gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4" onSubmit={handleSubmit}>
             <label className="grid gap-2 text-sm font-bold text-slate-700">
               Report type
               <select
@@ -156,36 +156,65 @@ export function CustomerReportRequests() {
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-black uppercase text-[var(--primary)]">History</p>
-            <h2 className="mt-1 text-xl font-black text-slate-950">Report requests</h2>
-          </div>
-          <span className="grid h-11 w-11 place-items-center rounded-lg bg-red-50 text-[var(--primary)]">
-            <FileText size={22} />
-          </span>
-        </div>
+        <PanelTitle kicker="History" title="Report request timeline" />
 
         <div className="mt-5 grid gap-3">
           {isLoading ? (
             <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-5 text-sm font-bold text-slate-600">Loading report requests...</p>
           ) : requests.length > 0 ? requests.map((request) => (
-            <article className="rounded-lg border border-slate-200 bg-slate-50 p-4" key={request.customerReportRequestId}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-black text-slate-950">{formatReportType(request.reportType)}</p>
-                  <p className="mt-1 text-xs font-semibold text-slate-500">{formatDate(request.createdAt)}</p>
+            <article className="rounded-lg border border-slate-200 bg-slate-50 p-4 transition hover:bg-white" key={request.customerReportRequestId}>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-base font-black text-slate-950">{formatReportType(request.reportType)}</p>
+                  <p className="mt-1 text-xs font-semibold text-slate-500">Requested {formatDate(request.createdAt)}</p>
                 </div>
                 <StatusBadge status={request.status} />
               </div>
-              {request.notes && <p className="mt-3 text-sm font-semibold text-slate-600">{request.notes}</p>}
-              {request.staffNote && <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-600">{request.staffNote}</p>}
+              {request.notes && (
+                <p className="mt-3 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-600">
+                  {request.notes}
+                </p>
+              )}
+              {request.staffNote && (
+                <p className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+                  {request.staffNote}
+                </p>
+              )}
             </article>
           )) : (
             <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-5 text-sm font-semibold text-slate-600">No report requests yet.</p>
           )}
         </div>
       </section>
+    </div>
+  )
+}
+
+function PanelTitle({ kicker, title }) {
+  return (
+    <div className="flex items-center gap-4">
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-red-50 text-[var(--primary)]">
+        <FileText size={22} />
+      </span>
+      <div>
+        <p className="text-xs font-black uppercase text-[var(--primary)]">{kicker}</p>
+        <h2 className="mt-1 text-xl font-black text-slate-950">{title}</h2>
+      </div>
+    </div>
+  )
+}
+
+function SummaryTile({ label, tone = 'red', value }) {
+  const toneClass = {
+    amber: 'text-amber-700',
+    emerald: 'text-emerald-700',
+    red: 'text-[var(--primary)]',
+  }[tone]
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <p className="text-xs font-black uppercase text-slate-500">{label}</p>
+      <p className={`mt-2 text-2xl font-black ${toneClass}`}>{value}</p>
     </div>
   )
 }

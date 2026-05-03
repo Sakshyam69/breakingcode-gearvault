@@ -6,6 +6,7 @@ import { CustomerReportRequests } from '../../components/customer/CustomerReport
 import { CustomerServiceBookings } from '../../components/customer/CustomerServiceBookings'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { customerSidebarMenu } from '../../components/dashboard/menus/customerSidebarMenu'
+import { SettingsWorkspace } from '../../components/dashboard/SettingsWorkspace'
 import { DashboardCustomer } from '../dashboard/DashboardCustomer'
 
 const customerPages = {
@@ -36,8 +37,8 @@ const customerPages = {
   },
   '/customer/settings': {
     title: 'Settings',
-    subtitle: 'Request sales, service, or full customer reports from staff.',
-    content: <CustomerReportRequests />,
+    subtitle: 'Update your profile, change your password, and request customer reports.',
+    content: <SettingsWorkspace role="Customer" reportRequests={<CustomerReportRequests />} />,
   },
 }
 
