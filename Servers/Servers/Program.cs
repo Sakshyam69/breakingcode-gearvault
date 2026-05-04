@@ -74,6 +74,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 builder.Services.AddSingleton<IAuthTokenService, HmacAuthTokenService>();
+builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IEmailService, BrevoEmailService>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
@@ -89,6 +90,7 @@ builder.Services.AddScoped<IServiceAppointmentService, ServiceAppointmentService
 builder.Services.AddScoped<IBookingInvoiceService, BookingInvoiceService>();
 builder.Services.AddScoped<ICustomerCreditService, CustomerCreditService>();
 builder.Services.AddScoped<ICustomerReportService, CustomerReportService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services
     .AddAuthentication(AuthSchemes.Bearer)
     .AddScheme<AuthenticationSchemeOptions, HmacTokenAuthenticationHandler>(AuthSchemes.Bearer, options => { });

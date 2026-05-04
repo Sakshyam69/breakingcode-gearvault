@@ -338,6 +338,7 @@ public sealed class CustomerVehicleService : ICustomerVehicleService
         vehicle.Year = request.Year.Trim();
         vehicle.Color = request.Color.Trim();
         vehicle.FuelType = request.FuelType.Trim();
+        vehicle.ImageUrl = request.ImageUrl.Trim();
         vehicle.EngineNumber = request.EngineNumber.Trim();
         vehicle.ChassisNumber = request.ChassisNumber.Trim();
         vehicle.Mileage = request.Mileage;
@@ -363,6 +364,7 @@ public sealed class CustomerVehicleService : ICustomerVehicleService
             vehicle.Year,
             vehicle.Color,
             vehicle.FuelType,
+            vehicle.ImageUrl,
             vehicle.EngineNumber,
             vehicle.ChassisNumber,
             vehicle.Mileage,

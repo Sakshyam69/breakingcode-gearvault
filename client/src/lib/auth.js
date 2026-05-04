@@ -378,6 +378,47 @@ export async function markAllNotificationsRead() {
   })
 }
 
+export async function getApprovedReviews() {
+  return fetch(`${API_BASE_URL}/api/reviews/approved`).then(async (response) => {
+    const data = await response.json().catch(() => null)
+    if (!response.ok) {
+      throw new Error(data?.message ?? data?.title ?? 'Something went wrong. Please try again.')
+    }
+    return data
+  })
+}
+
+export async function getAllReviews({ query = '', status = '' } = {}) {
+  const params = new URLSearchParams()
+  if (query) {
+    params.set('query', query)
+  }
+  if (status) {
+    params.set('status', status)
+  }
+
+  const queryString = params.toString()
+  return sendAuthenticatedRequest(`/api/reviews${queryString ? `?${queryString}` : ''}`)
+}
+
+export async function getMyReviews() {
+  return sendAuthenticatedRequest('/api/reviews/me')
+}
+
+export async function createReview(review) {
+  return sendAuthenticatedRequest('/api/reviews', {
+    method: 'POST',
+    body: JSON.stringify(review),
+  })
+}
+
+export async function updateReviewStatus(reviewId, update) {
+  return sendAuthenticatedRequest(`/api/reviews/${reviewId}/status`, {
+    method: 'PUT',
+    body: JSON.stringify(update),
+  })
+}
+
 export async function getCurrentUser() {
   const user = await sendAuthenticatedRequest('/api/auth/me')
   const currentAuth = getStoredAuth()

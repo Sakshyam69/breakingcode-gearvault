@@ -3,6 +3,7 @@ import { CustomerVehicleManagement } from '../../components/common/CustomerVehic
 import { CustomerInvoiceHistory } from '../../components/customer/CustomerInvoiceHistory'
 import { CustomerPartRequests } from '../../components/customer/CustomerPartRequests'
 import { CustomerReportRequests } from '../../components/customer/CustomerReportRequests'
+import { CustomerReviews } from '../../components/customer/CustomerReviews'
 import { CustomerServiceBookings } from '../../components/customer/CustomerServiceBookings'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { customerSidebarMenu } from '../../components/dashboard/menus/customerSidebarMenu'
@@ -29,6 +30,11 @@ const customerPages = {
     title: 'Part Requests',
     subtitle: 'Track requested parts and availability updates.',
     content: <CustomerPartRequests />,
+  },
+  '/customer/reviews': {
+    title: 'Reviews',
+    subtitle: 'Write and manage your service reviews.',
+    content: <CustomerReviews />,
   },
   '/customer/history': {
     title: 'History',

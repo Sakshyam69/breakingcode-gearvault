@@ -9,6 +9,7 @@ import { CustomerRegistration } from '../../components/staff/CustomerRegistratio
 import { SalesInvoiceManagement } from '../../components/staff/SalesInvoiceManagement'
 import { StaffCustomerReportGenerator } from '../../components/staff/StaffCustomerReportGenerator'
 import { StaffPartRequestManagement } from '../../components/staff/StaffPartRequestManagement'
+import { StaffReviewManagement } from '../../components/staff/StaffReviewManagement'
 import { StaffServiceBookingManagement } from '../../components/staff/StaffServiceBookingManagement'
 import { DashboardStaff } from '../dashboard/DashboardStaff'
 
@@ -47,6 +48,11 @@ const staffPages = {
     title: 'Bookings',
     subtitle: 'Review and manage customer service bookings.',
     content: <StaffServiceBookingManagement />,
+  },
+  '/staff/reviews': {
+    title: 'Reviews',
+    subtitle: 'Review and approve customer service reviews.',
+    content: <StaffReviewManagement />,
   },
   '/staff/reports': {
     title: 'Customer Reports',

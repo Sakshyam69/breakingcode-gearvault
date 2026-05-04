@@ -47,6 +47,7 @@ Use the `Authorization: Bearer <token>` header for every protected endpoint.
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
 | POST | `http://localhost:5223/api/uploads/profile-image` | Authenticated user | Upload a profile image file. |
+| POST | `http://localhost:5223/api/uploads/vehicle-image` | Authenticated user | Upload a customer vehicle image file. |
 
 ### Vendor Endpoints
 

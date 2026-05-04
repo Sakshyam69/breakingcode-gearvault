@@ -73,3 +73,23 @@ public sealed class UpdateProfileRequest
     [StringLength(30)]
     public string EmergencyContactPhone { get; set; } = string.Empty;
 }
+
+public sealed record PasswordChangeCodeResponse(
+    bool EmailSent,
+    DateTime ExpiresAt,
+    string Message);
+
+public sealed class ChangePasswordRequest
+{
+    [Required]
+    [StringLength(100)]
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(6, MinimumLength = 6)]
+    public string Code { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(100, MinimumLength = 8)]
+    public string NewPassword { get; set; } = string.Empty;
+}

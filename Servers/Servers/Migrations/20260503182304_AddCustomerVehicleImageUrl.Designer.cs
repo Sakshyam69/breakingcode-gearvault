@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Servers.Data;
@@ -11,9 +12,11 @@ using Servers.Data;
 namespace Servers.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260503182304_AddCustomerVehicleImageUrl")]
+    partial class AddCustomerVehicleImageUrl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -841,57 +844,6 @@ namespace Servers.Migrations
                     b.ToTable("PurchaseInvoiceItems", (string)null);
                 });
 
-            modelBuilder.Entity("Servers.Models.Review", b =>
-                {
-                    b.Property<int>("ReviewId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ReviewId"));
-
-                    b.Property<string>("Comment")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("NOW()");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ServiceAppointmentId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("ReviewId");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("Rating");
-
-                    b.HasIndex("ServiceAppointmentId")
-                        .IsUnique();
-
-                    b.HasIndex("Status");
-
-                    b.ToTable("Reviews", (string)null);
-                });
-
             modelBuilder.Entity("Servers.Models.SalesInvoice", b =>
                 {
                     b.Property<int>("SalesInvoiceId")
@@ -1635,25 +1587,6 @@ namespace Servers.Migrations
                     b.Navigation("Part");
 
                     b.Navigation("PurchaseInvoice");
-                });
-
-            modelBuilder.Entity("Servers.Models.Review", b =>
-                {
-                    b.HasOne("Servers.Models.User", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Servers.Models.ServiceAppointment", "ServiceAppointment")
-                        .WithOne()
-                        .HasForeignKey("Servers.Models.Review", "ServiceAppointmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("ServiceAppointment");
                 });
 
             modelBuilder.Entity("Servers.Models.SalesInvoice", b =>

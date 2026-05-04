@@ -18,6 +18,8 @@ public sealed class CustomerVehicle
 
     public string FuelType { get; set; } = string.Empty;
 
+    public string ImageUrl { get; set; } = string.Empty;
+
     public string EngineNumber { get; set; } = string.Empty;
 
     public string ChassisNumber { get; set; } = string.Empty;

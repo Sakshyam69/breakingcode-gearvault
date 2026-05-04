@@ -33,4 +33,21 @@ public sealed class UploadsController : ControllerBase
             return BadRequest(new { message = exception.Message });
         }
     }
+
+    [HttpPost("vehicle-image")]
+    [RequestSizeLimit(5 * 1024 * 1024)]
+    public async Task<ActionResult<UploadResponse>> UploadVehicleImage(
+        IFormFile file,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var response = await _cloudinary.UploadAsync(file, "AutoCare_vehicles", cancellationToken);
+            return Ok(response);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(new { message = exception.Message });
+        }
+    }
 }

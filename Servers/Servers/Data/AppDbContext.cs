@@ -46,6 +46,8 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<SalesInvoiceItem> SalesInvoiceItems => Set<SalesInvoiceItem>();
 
+    public DbSet<Review> Reviews => Set<Review>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -452,6 +454,10 @@ public sealed class AppDbContext : DbContext
 
             entity.Property(vehicle => vehicle.FuelType)
                 .HasMaxLength(60)
+                .IsRequired();
+
+            entity.Property(vehicle => vehicle.ImageUrl)
+                .HasMaxLength(500)
                 .IsRequired();
 
             entity.Property(vehicle => vehicle.EngineNumber)
@@ -1067,6 +1073,44 @@ public sealed class AppDbContext : DbContext
 
             entity.HasIndex(item => item.SalesInvoiceId);
             entity.HasIndex(item => item.PartId);
+        });
+
+        modelBuilder.Entity<Review>(entity =>
+        {
+            entity.ToTable("Reviews");
+            entity.HasKey(review => review.ReviewId);
+
+            entity.Property(review => review.Rating)
+                .IsRequired();
+
+            entity.Property(review => review.Comment)
+                .HasMaxLength(1000)
+                .IsRequired();
+
+            entity.Property(review => review.Status)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(review => review.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            entity.HasOne(review => review.Customer)
+                .WithMany()
+                .HasForeignKey(review => review.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(review => review.ServiceAppointment)
+                .WithOne()
+                .HasForeignKey<Review>(review => review.ServiceAppointmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(review => review.CustomerId);
+            entity.HasIndex(review => review.ServiceAppointmentId).IsUnique();
+            entity.HasIndex(review => review.Status);
+            entity.HasIndex(review => review.Rating);
+            entity.HasIndex(review => review.CreatedAt);
         });
     }
 }

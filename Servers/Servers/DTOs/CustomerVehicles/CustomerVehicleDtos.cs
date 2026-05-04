@@ -25,6 +25,9 @@ public class CreateCustomerVehicleRequest
     [StringLength(60)]
     public string FuelType { get; set; } = string.Empty;
 
+    [StringLength(500)]
+    public string ImageUrl { get; set; } = string.Empty;
+
     [StringLength(120)]
     public string EngineNumber { get; set; } = string.Empty;
 
@@ -57,6 +60,7 @@ public sealed record CustomerVehicleResponse(
     string Year,
     string Color,
     string FuelType,
+    string ImageUrl,
     string EngineNumber,
     string ChassisNumber,
     int? Mileage,
