@@ -91,6 +91,7 @@ builder.Services.AddScoped<IBookingInvoiceService, BookingInvoiceService>();
 builder.Services.AddScoped<ICustomerCreditService, CustomerCreditService>();
 builder.Services.AddScoped<ICustomerReportService, CustomerReportService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IFinancialReportService, FinancialReportService>();
 builder.Services
     .AddAuthentication(AuthSchemes.Bearer)
     .AddScheme<AuthenticationSchemeOptions, HmacTokenAuthenticationHandler>(AuthSchemes.Bearer, options => { });

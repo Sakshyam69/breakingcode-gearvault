@@ -2,11 +2,11 @@ import { useLocation } from 'react-router-dom'
 import { PartManagement } from '../../components/admin/PartManagement'
 import { PurchaseInvoiceManagement } from '../../components/admin/PurchaseInvoiceManagement'
 import { StaffManagement } from '../../components/admin/StaffManagement'
+import { AdminFinancialReports } from '../../components/admin/AdminFinancialReports'
 import { VendorManagement } from '../../components/admin/VendorManagement'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { adminSidebarMenu } from '../../components/dashboard/menus/adminSidebarMenu'
 import { SettingsWorkspace } from '../../components/dashboard/SettingsWorkspace'
-import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
 import { DashboardAdmin } from '../dashboard/DashboardAdmin'
 
 const adminPages = {
@@ -38,7 +38,7 @@ const adminPages = {
   '/admin/reports': {
     title: 'Reports',
     subtitle: 'View financial, inventory, and operational reports.',
-    content: <UnderDevelopment role="Admin reports" />,
+    content: <AdminFinancialReports />,
   },
   '/admin/settings': {
     title: 'Settings',

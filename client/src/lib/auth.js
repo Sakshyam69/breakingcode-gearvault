@@ -339,6 +339,22 @@ export async function getCustomerReports({ from = '', to = '', reportType = 'Com
   return sendAuthenticatedRequest(`/api/customer-reports${queryString ? `?${queryString}` : ''}`)
 }
 
+export async function getFinancialReport({ from = '', to = '', granularity = 'Daily' } = {}) {
+  const params = new URLSearchParams()
+  if (from) {
+    params.set('from', from)
+  }
+  if (to) {
+    params.set('to', to)
+  }
+  if (granularity) {
+    params.set('granularity', granularity)
+  }
+
+  const queryString = params.toString()
+  return sendAuthenticatedRequest(`/api/financial-reports/summary${queryString ? `?${queryString}` : ''}`)
+}
+
 export async function getCustomerReportRequests(status = '') {
   const queryString = status ? `?status=${encodeURIComponent(status)}` : ''
   return sendAuthenticatedRequest(`/api/customer-reports/requests${queryString}`)
