@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, Boxes, ReceiptText, Truck, Users, WalletCards } from 'lucide-react'
-import { getParts, getPurchaseInvoices, getUsers, getVendors } from '../../lib/auth'
+import { AlertTriangle, Boxes, Mail, ReceiptText, Truck, Users, WalletCards } from 'lucide-react'
+import { getAdminOverdueCredits, getParts, getPurchaseInvoices, getUsers, getVendors } from '../../lib/auth'
 
 export function DashboardAdmin() {
   const [users, setUsers] = useState([])
   const [vendors, setVendors] = useState([])
   const [parts, setParts] = useState([])
   const [purchaseInvoices, setPurchaseInvoices] = useState([])
+  const [overdueCredits, setOverdueCredits] = useState([])
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
@@ -15,11 +16,12 @@ export function DashboardAdmin() {
 
     async function loadDashboard() {
       try {
-        const [userData, vendorData, partData, invoiceData] = await Promise.all([
+        const [userData, vendorData, partData, invoiceData, overdueData] = await Promise.all([
           getUsers(),
           getVendors(),
           getParts(),
           getPurchaseInvoices(),
+          getAdminOverdueCredits(12),
         ])
 
         if (isMounted) {
@@ -27,6 +29,7 @@ export function DashboardAdmin() {
           setVendors(vendorData)
           setParts(partData)
           setPurchaseInvoices(invoiceData)
+          setOverdueCredits(overdueData)
         }
       } catch (exception) {
         if (isMounted) {
@@ -167,6 +170,10 @@ export function DashboardAdmin() {
         </DashboardPanel>
       </section>
 
+      <DashboardPanel title="Overdue Credits" subtitle="Unpaid balance older than 1 month">
+        <OverdueCreditsTable rows={overdueCredits} />
+      </DashboardPanel>
+
       <DashboardPanel title="Recent Purchase Invoices" subtitle="Latest stock update records">
         <RecentInvoiceTable invoices={recentInvoices} />
       </DashboardPanel>
@@ -236,6 +243,67 @@ function BarChart({ emptyLabel, formatter, rows, valueKey }) {
       })}
     </div>
   )
+}
+
+function OverdueCreditsTable({ rows }) {
+  if (!rows || rows.length === 0) {
+    return (
+      <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm font-semibold text-slate-600">
+        No overdue credits found.
+      </p>
+    )
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-lg border border-slate-200">
+      <table className="min-w-full border-collapse text-left text-sm">
+        <thead className="bg-slate-50 text-xs font-black uppercase text-slate-500">
+          <tr>
+            <th className="px-4 py-3">Customer</th>
+            <th className="px-4 py-3">Overdue</th>
+            <th className="px-4 py-3">Invoices</th>
+            <th className="px-4 py-3">Oldest due</th>
+            <th className="px-4 py-3">Last reminder</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.slice(0, 12).map((row) => (
+            <tr key={row.customerId} className="border-t border-slate-200 bg-white">
+              <td className="px-4 py-3">
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 grid h-9 w-9 place-items-center rounded-lg bg-amber-50 text-amber-700">
+                    <Mail size={18} />
+                  </span>
+                  <div>
+                    <p className="font-black text-slate-900">{row.fullName || `Customer #${row.customerId}`}</p>
+                    <p className="mt-0.5 text-xs font-bold text-slate-500">{row.email}</p>
+                  </div>
+                </div>
+              </td>
+              <td className="px-4 py-3 font-black text-slate-900">{formatMoney(row.totalOverdueAmount)}</td>
+              <td className="px-4 py-3 text-slate-700">
+                <p className="font-bold">{Number(row.salesInvoiceCount || 0) + Number(row.bookingInvoiceCount || 0)}</p>
+                <p className="mt-0.5 text-xs font-bold text-slate-500">Parts {row.salesInvoiceCount} • Service {row.bookingInvoiceCount}</p>
+              </td>
+              <td className="px-4 py-3 font-bold text-slate-700">{formatDate(row.oldestDueDate)}</td>
+              <td className="px-4 py-3 font-bold text-slate-700">{row.lastReminderAt ? formatDateTime(row.lastReminderAt) : '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function formatDateTime(value) {
+  if (!value) return ''
+  return new Intl.DateTimeFormat('en', {
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(value))
 }
 
 function StatusBars({ rows }) {

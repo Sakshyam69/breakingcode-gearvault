@@ -355,6 +355,12 @@ export async function getFinancialReport({ from = '', to = '', granularity = 'Da
   return sendAuthenticatedRequest(`/api/financial-reports/summary${queryString ? `?${queryString}` : ''}`)
 }
 
+export async function getAdminOverdueCredits(take = 10) {
+  const count = Number(take || 0)
+  const query = Number.isFinite(count) && count > 0 ? `?take=${encodeURIComponent(Math.min(count, 100))}` : ''
+  return sendAuthenticatedRequest(`/api/admin/insights/overdue-credits${query}`)
+}
+
 export async function getCustomerReportRequests(status = '') {
   const queryString = status ? `?status=${encodeURIComponent(status)}` : ''
   return sendAuthenticatedRequest(`/api/customer-reports/requests${queryString}`)
