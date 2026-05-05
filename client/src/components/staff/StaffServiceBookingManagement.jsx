@@ -452,11 +452,24 @@ function BookingInvoiceModal({
     Number(formData.serviceCharge || 0) - Number(formData.discountAmount || 0) + Number(formData.taxAmount || 0),
     0,
   )
-  const customerCreditApplied = Math.min(Number(formData.customerCreditAppliedAmount || 0), total)
+  const creditBalance = Number(appointment.customerCreditBalance || 0)
+  const maxCreditForInvoice = Math.min(creditBalance, total)
+  const rawCustomerCreditApplied = Number(formData.customerCreditAppliedAmount || 0)
+  const customerCreditApplied = clampAmount(rawCustomerCreditApplied, 0, maxCreditForInvoice)
   const payable = Math.max(total - customerCreditApplied, 0)
   const credit = Math.max(payable - Number(formData.paidAmount || 0), 0)
   const returnAmount = Math.max(Number(formData.paidAmount || 0) - payable, 0)
-  const creditBalance = Number(appointment.customerCreditBalance || 0)
+
+  useEffect(() => {
+    if (rawCustomerCreditApplied !== customerCreditApplied) {
+      onChange({
+        target: {
+          name: 'customerCreditAppliedAmount',
+          value: String(customerCreditApplied),
+        },
+      })
+    }
+  }, [customerCreditApplied, onChange, rawCustomerCreditApplied])
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4">
@@ -486,7 +499,38 @@ function BookingInvoiceModal({
             <TextField label="Paid amount" min="0" name="paidAmount" onChange={onChange} step="0.01" type="number" value={formData.paidAmount} />
             <TextField label="Discount" min="0" name="discountAmount" onChange={onChange} step="0.01" type="number" value={formData.discountAmount} />
             <TextField label="Tax" min="0" name="taxAmount" onChange={onChange} step="0.01" type="number" value={formData.taxAmount} />
-            <TextField label="Use customer credit" max={creditBalance} min="0" name="customerCreditAppliedAmount" onChange={onChange} step="0.01" type="number" value={formData.customerCreditAppliedAmount} />
+            <div className="grid gap-2">
+              <TextField
+                label="Use customer credit"
+                max={maxCreditForInvoice}
+                min="0"
+                name="customerCreditAppliedAmount"
+                onChange={onChange}
+                step="0.01"
+                type="number"
+                value={formData.customerCreditAppliedAmount}
+              />
+              <div className="flex flex-wrap gap-2">
+                <ShortcutButton label="0%" onClick={() => setCustomerCredit(onChange, 0)} />
+                <ShortcutButton label="50%" onClick={() => setCustomerCredit(onChange, roundMoney(maxCreditForInvoice * 0.5))} />
+                <ShortcutButton label="100%" onClick={() => setCustomerCredit(onChange, roundMoney(maxCreditForInvoice))} />
+              </div>
+              <label className="grid gap-2 text-xs font-bold uppercase text-slate-500">
+                Drag to apply credit
+                <input
+                  className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-[var(--primary)]"
+                  type="range"
+                  min={0}
+                  max={Math.max(Math.ceil(maxCreditForInvoice), 0)}
+                  step={1}
+                  value={Math.max(Math.floor(customerCreditApplied), 0)}
+                  onChange={(event) => setCustomerCredit(onChange, event.target.value)}
+                />
+              </label>
+              <p className="text-xs font-bold text-slate-500">
+                Max usable credit for this invoice: {formatMoney(maxCreditForInvoice)}
+              </p>
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -531,6 +575,39 @@ function BookingInvoiceModal({
       </section>
     </div>
   )
+}
+
+function ShortcutButton({ label, onClick }) {
+  return (
+    <button
+      className="min-h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs font-black text-slate-700 transition hover:bg-slate-50"
+      type="button"
+      onClick={onClick}
+    >
+      {label}
+    </button>
+  )
+}
+
+function setCustomerCredit(onChange, value) {
+  onChange({
+    target: {
+      name: 'customerCreditAppliedAmount',
+      value: String(value),
+    },
+  })
+}
+
+function roundMoney(value) {
+  return Math.round(Number(value || 0) * 100) / 100
+}
+
+function clampAmount(value, min, max) {
+  const numeric = Number(value || 0)
+  if (!Number.isFinite(numeric)) {
+    return 0
+  }
+  return Math.min(Math.max(numeric, min), max)
 }
 
 function BookingDetailsModal({ appointment, onClose, onCreateInvoice }) {

@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CalendarCheck, CheckCircle2, Clock, Send, Wrench, XCircle } from 'lucide-react'
+import { CalendarCheck, CheckCircle2, ChevronLeft, ChevronRight, Clock, MessageSquare, Send, Star, Wrench, X, XCircle } from 'lucide-react'
 import {
   cancelMyServiceAppointment,
+  createReview,
   createMyServiceAppointment,
   getMyServiceAppointments,
+  getMyReviews,
   getMyVehicles,
 } from '../../lib/auth'
 
@@ -29,6 +31,7 @@ const timeSlots = [
 ]
 
 const urgencyOptions = ['Low', 'Normal', 'High', 'Urgent']
+const appointmentPageSize = 2
 
 const initialFormData = {
   vehicleId: '',
@@ -46,24 +49,32 @@ export function CustomerServiceBookings() {
   const [formData, setFormData] = useState(initialFormData)
   const [vehicles, setVehicles] = useState([])
   const [appointments, setAppointments] = useState([])
+  const [reviews, setReviews] = useState([])
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [appointmentPage, setAppointmentPage] = useState(1)
+  const [reviewingAppointment, setReviewingAppointment] = useState(null)
+  const [reviewDraft, setReviewDraft] = useState({ rating: 5, comment: '' })
+  const [reviewError, setReviewError] = useState('')
+  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false)
 
   useEffect(() => {
     let isMounted = true
 
     async function loadData() {
       try {
-        const [vehicleData, appointmentData] = await Promise.all([
+        const [vehicleData, appointmentData, reviewData] = await Promise.all([
           getMyVehicles(),
           getMyServiceAppointments(),
+          getMyReviews(),
         ])
 
         if (isMounted) {
           setVehicles(vehicleData)
           setAppointments(appointmentData)
+          setReviews(reviewData)
           setFormData((current) => ({
             ...current,
             vehicleId: current.vehicleId || String(vehicleData.find((vehicle) => vehicle.isPrimary)?.customerVehicleId ?? vehicleData[0]?.customerVehicleId ?? ''),
@@ -92,6 +103,33 @@ export function CustomerServiceBookings() {
     completed: appointments.filter((appointment) => appointment.status === 'Completed').length,
     upcoming: appointments.filter((appointment) => ['Pending', 'Confirmed'].includes(appointment.status)).length,
   }), [appointments])
+
+  const sortedAppointments = useMemo(() => (
+    [...appointments].sort((left, right) => {
+      const leftDate = getAppointmentSortDate(left)
+      const rightDate = getAppointmentSortDate(right)
+      return rightDate - leftDate
+    })
+  ), [appointments])
+
+  const totalAppointmentPages = useMemo(
+    () => Math.max(1, Math.ceil(sortedAppointments.length / appointmentPageSize)),
+    [sortedAppointments.length],
+  )
+
+  const currentAppointmentPage = useMemo(
+    () => Math.min(appointmentPage, totalAppointmentPages),
+    [appointmentPage, totalAppointmentPages],
+  )
+
+  const paginatedAppointments = useMemo(() => {
+    const start = (currentAppointmentPage - 1) * appointmentPageSize
+    return sortedAppointments.slice(start, start + appointmentPageSize)
+  }, [currentAppointmentPage, sortedAppointments])
+
+  useEffect(() => {
+    setAppointmentPage((current) => Math.min(current, totalAppointmentPages))
+  }, [totalAppointmentPages])
 
   const availableTimeSlots = useMemo(() => (
     getAvailableTimeSlots(formData.preferredDate)
@@ -167,6 +205,51 @@ export function CustomerServiceBookings() {
       setMessage('Appointment cancelled.')
     } catch (exception) {
       setError(exception.message)
+    }
+  }
+
+  function hasReviewForAppointment(appointmentId) {
+    return reviews.some((review) => review.serviceAppointmentId === appointmentId)
+  }
+
+  function openReview(appointment) {
+    setError('')
+    setMessage('')
+    setReviewError('')
+    setReviewingAppointment(appointment)
+    setReviewDraft({ rating: 5, comment: '' })
+  }
+
+  function closeReview() {
+    setReviewingAppointment(null)
+    setReviewDraft({ rating: 5, comment: '' })
+    setReviewError('')
+    setIsReviewSubmitting(false)
+  }
+
+  async function submitReview(event) {
+    event.preventDefault()
+    if (!reviewingAppointment) {
+      return
+    }
+
+    setReviewError('')
+    setMessage('')
+    setIsReviewSubmitting(true)
+
+    try {
+      const createdReview = await createReview({
+        serviceAppointmentId: reviewingAppointment.serviceAppointmentId,
+        rating: Number(reviewDraft.rating || 5),
+        comment: reviewDraft.comment,
+      })
+      setReviews((current) => [createdReview, ...current])
+      setMessage('Thank you for your review!')
+      closeReview()
+    } catch (exception) {
+      setReviewError(exception.message)
+    } finally {
+      setIsReviewSubmitting(false)
     }
   }
 
@@ -298,7 +381,7 @@ export function CustomerServiceBookings() {
         <div className="mt-6 grid gap-4">
           {isLoading ? (
             <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm font-semibold text-slate-600">Loading appointments...</p>
-          ) : appointments.length > 0 ? appointments.map((appointment) => (
+          ) : sortedAppointments.length > 0 ? paginatedAppointments.map((appointment) => (
             <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm" key={appointment.serviceAppointmentId}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -319,22 +402,85 @@ export function CustomerServiceBookings() {
               {appointment.completionNote && <Message tone="success">{appointment.completionNote}</Message>}
               {appointment.cancellationReason && <Message tone="error">{appointment.cancellationReason}</Message>}
 
-              {['Pending', 'Confirmed'].includes(appointment.status) && (
-                <button
-                  className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-red-200 px-4 text-sm font-black text-red-700 transition hover:bg-red-50"
-                  type="button"
-                  onClick={() => handleCancel(appointment)}
-                >
-                  <XCircle size={17} />
-                  Cancel appointment
-                </button>
-              )}
+              <div className="mt-4 flex flex-wrap gap-3">
+                {['Pending', 'Confirmed'].includes(appointment.status) && (
+                  <button
+                    className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-red-200 px-4 text-sm font-black text-red-700 transition hover:bg-red-50"
+                    type="button"
+                    onClick={() => handleCancel(appointment)}
+                  >
+                    <XCircle size={17} />
+                    Cancel appointment
+                  </button>
+                )}
+
+                {appointment.status === 'Completed' && (
+                  hasReviewForAppointment(appointment.serviceAppointmentId) ? (
+                    <span className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 text-sm font-black text-emerald-700">
+                      <Star size={17} />
+                      Reviewed
+                    </span>
+                  ) : (
+                    <button
+                      className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 text-sm font-black text-white transition hover:bg-[var(--primary-hover)]"
+                      type="button"
+                      onClick={() => openReview(appointment)}
+                    >
+                      <MessageSquare size={17} />
+                      Write review
+                    </button>
+                  )
+                )}
+              </div>
             </article>
           )) : (
             <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm font-semibold text-slate-600">No service appointments yet.</p>
           )}
         </div>
+
+        {!isLoading && sortedAppointments.length > appointmentPageSize && (
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+            <p className="text-xs font-bold text-slate-500">
+              Showing {(currentAppointmentPage - 1) * appointmentPageSize + 1}-{Math.min(currentAppointmentPage * appointmentPageSize, sortedAppointments.length)} of {sortedAppointments.length}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-slate-300 px-3 text-xs font-black text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={currentAppointmentPage === 1}
+                type="button"
+                onClick={() => setAppointmentPage((page) => Math.max(page - 1, 1))}
+              >
+                <ChevronLeft size={15} />
+                Newer
+              </button>
+              <span className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-black text-slate-600">
+                {currentAppointmentPage}/{totalAppointmentPages}
+              </span>
+              <button
+                className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-slate-300 px-3 text-xs font-black text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={currentAppointmentPage === totalAppointmentPages}
+                type="button"
+                onClick={() => setAppointmentPage((page) => Math.min(page + 1, totalAppointmentPages))}
+              >
+                Older
+                <ChevronRight size={15} />
+              </button>
+            </div>
+          </div>
+        )}
       </section>
+
+      {reviewingAppointment && (
+        <ReviewModal
+          appointment={reviewingAppointment}
+          draft={reviewDraft}
+          error={reviewError}
+          isSubmitting={isReviewSubmitting}
+          onChange={(next) => setReviewDraft((current) => ({ ...current, ...next }))}
+          onClose={closeReview}
+          onSubmit={submitReview}
+        />
+      )}
     </div>
   )
 }
@@ -505,4 +651,98 @@ function formatDate(value) {
     month: 'short',
     year: 'numeric',
   }).format(new Date(value))
+}
+
+function getAppointmentSortDate(appointment) {
+  const candidates = [appointment?.createdAt, appointment?.preferredDate, appointment?.updatedAt]
+  for (const value of candidates) {
+    const timestamp = Date.parse(value)
+    if (!Number.isNaN(timestamp)) {
+      return timestamp
+    }
+  }
+  return 0
+}
+
+function ReviewModal({ appointment, draft, error, isSubmitting, onChange, onClose, onSubmit }) {
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-8">
+      <section className="w-full max-w-xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+          <div>
+            <p className="text-xs font-black uppercase text-red-600">Review booking</p>
+            <h2 className="mt-1 text-lg font-black text-slate-950">{appointment.displayServiceType}</h2>
+            <p className="mt-1 text-sm font-semibold text-slate-500">{appointment.appointmentNumber} • {appointment.vehicleLabel}</p>
+          </div>
+          <button
+            className="grid h-10 w-10 place-items-center rounded-lg border border-slate-300 text-slate-700 transition hover:bg-slate-50"
+            type="button"
+            aria-label="Close review"
+            onClick={onClose}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <form className="grid gap-5 bg-slate-50 px-5 py-5" onSubmit={onSubmit}>
+          <div className="rounded-lg border border-slate-200 bg-white p-4">
+            <p className="text-xs font-black uppercase text-slate-500">Rating</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-black transition ${
+                    star <= draft.rating
+                      ? 'border-amber-200 bg-amber-50 text-amber-700'
+                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                  }`}
+                  type="button"
+                  onClick={() => onChange({ rating: star })}
+                >
+                  <Star size={18} fill={star <= draft.rating ? 'currentColor' : 'none'} />
+                  {star}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <label className="grid gap-2 rounded-lg border border-slate-200 bg-white p-4 text-sm font-bold text-slate-700">
+            Comment
+            <textarea
+              className="min-h-28 rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-950 outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-red-100"
+              minLength={10}
+              maxLength={1000}
+              required
+              value={draft.comment}
+              onChange={(event) => onChange({ comment: event.target.value })}
+            />
+          </label>
+
+          {error && (
+            <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+              {error}
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-3">
+            <button
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-black text-white transition hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={isSubmitting}
+              type="submit"
+            >
+              <Send size={18} />
+              {isSubmitting ? 'Submitting...' : 'Submit review'}
+            </button>
+            <button
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+              type="button"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  )
 }
