@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Mail, Send, UserPlus } from 'lucide-react'
-import { createStaffAccount, getUsers } from '../../lib/auth'
+import { BadgeCheck, Ban, Mail, Save, Send, Shield, UserCog, UserPlus } from 'lucide-react'
+import { createStaffAccount, getUsers, setUserActive, updateUserRole } from '../../lib/auth'
 
 const initialFormData = {
   email: '',
@@ -15,6 +15,7 @@ export function StaffManagement() {
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [busyUserId, setBusyUserId] = useState(null)
 
   useEffect(() => {
     let isMounted = true
@@ -80,6 +81,42 @@ export function StaffManagement() {
       setError(exception.message)
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  async function handleRoleChange(staff, nextRole) {
+    setError('')
+    setMessage('')
+    setBusyUserId(staff.id)
+    try {
+      const updated = await updateUserRole(staff.id, nextRole)
+      setStaffMembers((current) => {
+        if (updated.role !== 'Staff') {
+          return current.filter((item) => item.id !== updated.id)
+        }
+        return current.map((item) => (item.id === updated.id ? updated : item))
+      })
+      setMessage(`Role updated for ${updated.email}.`)
+    } catch (exception) {
+      setError(exception.message)
+    } finally {
+      setBusyUserId(null)
+    }
+  }
+
+  async function toggleActive(staff) {
+    setError('')
+    setMessage('')
+    setBusyUserId(staff.id)
+    try {
+      const isActive = staff.isActive !== false
+      const updated = await setUserActive(staff.id, !isActive)
+      setStaffMembers((current) => current.map((item) => (item.id === updated.id ? updated : item)))
+      setMessage(`${updated.isActive ? 'Activated' : 'Deactivated'} ${updated.email}.`)
+    } catch (exception) {
+      setError(exception.message)
+    } finally {
+      setBusyUserId(null)
     }
   }
 
@@ -178,19 +215,21 @@ export function StaffManagement() {
         </div>
 
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[520px] border-collapse text-left">
+          <table className="w-full min-w-[720px] border-collapse text-left">
             <thead>
               <tr className="border-b border-slate-200 text-xs font-black uppercase text-slate-500">
                 <th className="py-3 pr-4">Name</th>
                 <th className="py-3 pr-4">Email</th>
-                <th className="py-3 pr-4">Status</th>
-                <th className="py-3">Email</th>
+                <th className="py-3 pr-4">Active</th>
+                <th className="py-3 pr-4">Role</th>
+                <th className="py-3 pr-4">Profile</th>
+                <th className="py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td className="py-5 text-sm font-semibold text-slate-600" colSpan={4}>
+                  <td className="py-5 text-sm font-semibold text-slate-600" colSpan={7}>
                     Loading staff accounts...
                   </td>
                 </tr>
@@ -200,26 +239,63 @@ export function StaffManagement() {
                     <td className="py-4 pr-4 text-sm font-black text-slate-950">{getDisplayName(staff)}</td>
                     <td className="py-4 pr-4 text-sm font-semibold text-slate-600">{staff.email}</td>
                     <td className="py-4 pr-4">
+                      <ActiveBadge value={staff.isActive} />
+                    </td>
+                    <td className="py-4 pr-4">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700">
+                        {staff.role === 'Admin' ? <Shield size={14} /> : <UserCog size={14} />}
+                        {staff.role}
+                      </span>
+                    </td>
+                    <td className="py-4 pr-4">
                       <span className={`rounded-full px-3 py-1 text-xs font-black ${getStatusClassName(staff.accountSetupStatus)}`}>
                         {getStatusLabel(staff.accountSetupStatus)}
                       </span>
                     </td>
                     <td className="py-4">
-                      <button
-                        className="inline-flex min-h-9 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 text-xs font-black text-slate-400"
-                        disabled
-                        type="button"
-                        title="Credentials are emailed when the staff account is created."
-                      >
-                        <Send size={14} />
-                        On create
-                      </button>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-xs font-black text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={busyUserId === staff.id}
+                          type="button"
+                          onClick={() => toggleActive(staff)}
+                          title={(staff.isActive !== false) ? 'Deactivate account' : 'Activate account'}
+                        >
+                          {(staff.isActive !== false) ? <Ban size={14} /> : <BadgeCheck size={14} />}
+                          {(staff.isActive !== false) ? 'Deactivate' : 'Activate'}
+                        </button>
+
+                        <label className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-xs font-black text-slate-700">
+                          <Save size={14} />
+                          <select
+                            className="bg-transparent text-xs font-black text-slate-700 outline-none"
+                            disabled={busyUserId === staff.id}
+                            value={staff.role}
+                            onChange={(event) => handleRoleChange(staff, event.target.value)}
+                            title="Change role"
+                          >
+                            <option value="Staff">Staff</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Customer">Customer</option>
+                          </select>
+                        </label>
+
+                        <button
+                          className="inline-flex min-h-9 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 text-xs font-black text-slate-400"
+                          disabled
+                          type="button"
+                          title="Credentials are emailed when the staff account is created."
+                        >
+                          <Send size={14} />
+                          Email on create
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td className="py-5 text-sm font-semibold text-slate-600" colSpan={4}>
+                  <td className="py-5 text-sm font-semibold text-slate-600" colSpan={7}>
                     No staff accounts found.
                   </td>
                 </tr>
@@ -253,4 +329,15 @@ function getStatusClassName(status) {
   return status === 'Complete'
     ? 'bg-emerald-50 text-emerald-700'
     : 'bg-amber-50 text-amber-700'
+}
+
+function ActiveBadge({ value }) {
+  const isActive = value !== false
+  const className = isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-black ${className}`}>
+      {isActive ? <BadgeCheck size={14} /> : <Ban size={14} />}
+      {isActive ? 'Active' : 'Inactive'}
+    </span>
+  )
 }

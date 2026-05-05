@@ -100,6 +100,10 @@ public interface IAuthService
     Task<UserResponse?> GetUserAsync(int userId, CancellationToken cancellationToken);
 
     Task<IReadOnlyCollection<UserResponse>> GetUsersAsync(CancellationToken cancellationToken);
+
+    Task<UserResponse?> UpdateUserRoleAsync(int userId, UserRole role, CancellationToken cancellationToken);
+
+    Task<UserResponse?> SetUserActiveAsync(int userId, bool isActive, CancellationToken cancellationToken);
 }
 
 public sealed class AuthService : IAuthService
@@ -187,6 +191,11 @@ public sealed class AuthService : IAuthService
             return null;
         }
 
+        if (!user.IsActive)
+        {
+            throw new InvalidOperationException("This account has been deactivated. Please contact admin.");
+        }
+
         return BuildAuthResponse(user);
     }
 
@@ -200,6 +209,32 @@ public sealed class AuthService : IAuthService
     {
         var users = await _users.GetAllAsync(cancellationToken);
         return users.Select(ToResponse).ToArray();
+    }
+
+    public async Task<UserResponse?> UpdateUserRoleAsync(int userId, UserRole role, CancellationToken cancellationToken)
+    {
+        var user = await _users.GetByIdAsync(userId, cancellationToken);
+        if (user is null)
+        {
+            return null;
+        }
+
+        user.Role = role;
+        await _users.SaveChangesAsync(cancellationToken);
+        return ToResponse(user);
+    }
+
+    public async Task<UserResponse?> SetUserActiveAsync(int userId, bool isActive, CancellationToken cancellationToken)
+    {
+        var user = await _users.GetByIdAsync(userId, cancellationToken);
+        if (user is null)
+        {
+            return null;
+        }
+
+        user.IsActive = isActive;
+        await _users.SaveChangesAsync(cancellationToken);
+        return ToResponse(user);
     }
 
     private async Task<User> CreateUserAsync(
@@ -224,6 +259,7 @@ public sealed class AuthService : IAuthService
             Phone = phone.Trim(),
             PasswordHash = _passwordHasher.Hash(password),
             Role = role,
+            IsActive = true,
             AccountSetupStatus = accountSetupStatus
         };
 
@@ -426,6 +462,7 @@ public sealed class AuthService : IAuthService
             user.Email,
             user.Phone,
             user.Role,
+            user.IsActive,
             user.AccountSetupStatus,
             ToProfileResponse(user.Profile),
             user.CreatedAt);
@@ -445,4 +482,5 @@ public sealed class AuthService : IAuthService
                 profile.CreatedAt,
                 profile.UpdatedAt);
     }
+
 }

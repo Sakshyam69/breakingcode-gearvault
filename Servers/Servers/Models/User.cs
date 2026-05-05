@@ -27,6 +27,8 @@ public sealed class User
 
     public UserRole Role { get; set; }
 
+    public bool IsActive { get; set; } = true;
+
     public AccountSetupStatus AccountSetupStatus { get; set; } = AccountSetupStatus.Complete;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -64,6 +64,7 @@ public sealed record UserResponse(
     string Email,
     string Phone,
     UserRole Role,
+    bool IsActive,
     AccountSetupStatus AccountSetupStatus,
     UserProfileResponse? Profile,
     DateTime CreatedAt);

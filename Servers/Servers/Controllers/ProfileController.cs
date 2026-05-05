@@ -265,6 +265,7 @@ public sealed class ProfileController : ControllerBase
             user.Email,
             user.Phone,
             user.Role,
+            user.IsActive,
             user.AccountSetupStatus,
             ToProfileResponse(user.Profile),
             user.CreatedAt);

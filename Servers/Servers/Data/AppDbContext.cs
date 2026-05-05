@@ -78,6 +78,10 @@ public sealed class AppDbContext : DbContext
 
             entity.HasIndex(user => user.Role);
 
+            entity.Property(user => user.IsActive)
+                .HasDefaultValue(true)
+                .IsRequired();
+
             entity.Property(user => user.AccountSetupStatus)
                 .HasConversion<string>()
                 .HasMaxLength(30)

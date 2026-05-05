@@ -75,6 +75,20 @@ export async function getUsers() {
   return sendAuthenticatedRequest('/api/auth/users')
 }
 
+export async function updateUserRole(userId, role) {
+  return sendAuthenticatedRequest(`/api/auth/users/${userId}/role`, {
+    method: 'PUT',
+    body: JSON.stringify({ role }),
+  })
+}
+
+export async function setUserActive(userId, isActive) {
+  return sendAuthenticatedRequest(`/api/auth/users/${userId}/active`, {
+    method: 'PUT',
+    body: JSON.stringify({ isActive }),
+  })
+}
+
 export async function getVendors() {
   return sendAuthenticatedRequest('/api/vendors')
 }

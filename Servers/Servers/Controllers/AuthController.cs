@@ -75,13 +75,20 @@ public sealed class AuthController : ControllerBase
         LoginRequest request,
         CancellationToken cancellationToken)
     {
-        var response = await _authService.LoginAsync(request, cancellationToken);
-        if (response is null)
+        try
         {
-            return Unauthorized(new { message = "Invalid email or password." });
-        }
+            var response = await _authService.LoginAsync(request, cancellationToken);
+            if (response is null)
+            {
+                return Unauthorized(new { message = "Invalid email or password." });
+            }
 
-        return Ok(response);
+            return Ok(response);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Unauthorized(new { message = exception.Message });
+        }
     }
 
     [HttpGet("me")]
@@ -104,5 +111,53 @@ public sealed class AuthController : ControllerBase
     {
         var users = await _authService.GetUsersAsync(cancellationToken);
         return Ok(users);
+    }
+
+    [HttpPut("users/{userId:int}/role")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
+    public async Task<ActionResult<UserResponse>> UpdateUserRole(
+        int userId,
+        UpdateUserRoleRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var actorUserId))
+        {
+            return Unauthorized(new { message = "Invalid token subject." });
+        }
+
+        if (userId == actorUserId)
+        {
+            return BadRequest(new { message = "You cannot change your own role." });
+        }
+
+        var updated = await _authService.UpdateUserRoleAsync(userId, request.Role, cancellationToken);
+        return updated is null ? NotFound(new { message = "User not found." }) : Ok(updated);
+    }
+
+    [HttpPut("users/{userId:int}/active")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
+    public async Task<ActionResult<UserResponse>> SetUserActive(
+        int userId,
+        UpdateUserActiveRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var actorUserId))
+        {
+            return Unauthorized(new { message = "Invalid token subject." });
+        }
+
+        if (userId == actorUserId)
+        {
+            return BadRequest(new { message = "You cannot deactivate your own account." });
+        }
+
+        var updated = await _authService.SetUserActiveAsync(userId, request.IsActive, cancellationToken);
+        return updated is null ? NotFound(new { message = "User not found." }) : Ok(updated);
+    }
+
+    private bool TryGetUserId(out int userId)
+    {
+        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(userIdValue, out userId);
     }
 }

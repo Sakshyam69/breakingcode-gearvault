@@ -5,6 +5,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Servers.Models;
 
@@ -166,38 +167,54 @@ public sealed class HmacAuthTokenService : IAuthTokenService
 public sealed class HmacTokenAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     private readonly IAuthTokenService _tokenService;
+    private readonly Servers.Data.AppDbContext _db;
 
     public HmacTokenAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
-        IAuthTokenService tokenService)
+        IAuthTokenService tokenService,
+        Servers.Data.AppDbContext db)
         : base(options, logger, encoder)
     {
         _tokenService = tokenService;
+        _db = db;
     }
 
-    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var authorizationHeader = Request.Headers.Authorization.ToString();
         if (string.IsNullOrWhiteSpace(authorizationHeader))
         {
-            return Task.FromResult(AuthenticateResult.NoResult());
+            return AuthenticateResult.NoResult();
         }
 
         if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
-            return Task.FromResult(AuthenticateResult.Fail("Unsupported authorization scheme."));
+            return AuthenticateResult.Fail("Unsupported authorization scheme.");
         }
 
         var token = authorizationHeader["Bearer ".Length..].Trim();
         var principal = _tokenService.ValidateToken(token);
         if (principal is null)
         {
-            return Task.FromResult(AuthenticateResult.Fail("Invalid or expired token."));
+            return AuthenticateResult.Fail("Invalid or expired token.");
+        }
+
+        var userIdValue = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (int.TryParse(userIdValue, out var userId))
+        {
+            var isActive = await _db.Users
+                .AsNoTracking()
+                .AnyAsync(user => user.Id == userId && user.IsActive);
+
+            if (!isActive)
+            {
+                return AuthenticateResult.Fail("Account is deactivated.");
+            }
         }
 
         var ticket = new AuthenticationTicket(principal, AuthSchemes.Bearer);
-        return Task.FromResult(AuthenticateResult.Success(ticket));
+        return AuthenticateResult.Success(ticket);
     }
 }

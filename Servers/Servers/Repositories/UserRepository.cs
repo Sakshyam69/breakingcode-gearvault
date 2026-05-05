@@ -13,6 +13,8 @@ public interface IUserRepository
     Task<IReadOnlyCollection<User>> GetAllAsync(CancellationToken cancellationToken);
 
     Task<User> AddAsync(User user, CancellationToken cancellationToken);
+
+    Task SaveChangesAsync(CancellationToken cancellationToken);
 }
 
 public sealed class EfUserRepository : IUserRepository
@@ -59,5 +61,10 @@ public sealed class EfUserRepository : IUserRepository
         await _db.SaveChangesAsync(cancellationToken);
 
         return user;
+    }
+
+    public Task SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        return _db.SaveChangesAsync(cancellationToken);
     }
 }
