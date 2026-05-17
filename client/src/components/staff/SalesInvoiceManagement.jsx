@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { FilePlus2, Mail, Plus, ReceiptText, Search, X } from 'lucide-react'
+import { Eye, FilePlus2, Mail, Plus, ReceiptText, Search, X } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import {
   createSalesInvoice,
@@ -23,6 +23,9 @@ const initialFormData = {
   items: [{ partId: '', partName: '', partNumber: '', quantity: '1', unitPrice: '' }],
 }
 
+const LOYALTY_THRESHOLD = 5000
+const LOYALTY_DISCOUNT_RATE = 0.1
+
 export function SalesInvoiceManagement() {
   const location = useLocation()
   const [invoices, setInvoices] = useState([])
@@ -38,6 +41,7 @@ export function SalesInvoiceManagement() {
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const hasPanel = mode !== 'list'
 
   useEffect(() => {
@@ -99,6 +103,7 @@ export function SalesInvoiceManagement() {
     setMessage(`Creating invoice for request #${partRequest.partRequestId}.`)
     setMode('create')
     setSelectedInvoice(null)
+    setIsCreateModalOpen(false)
   }, [location.state])
 
   const filteredInvoices = useMemo(() => {
@@ -141,6 +146,23 @@ export function SalesInvoiceManagement() {
     setFormData(initialFormData)
     setError('')
     setMessage('')
+    setIsCreateModalOpen(false)
+  }
+
+  function openCreateModal() {
+    setMode('create')
+    setSelectedInvoice(null)
+    setFormData(initialFormData)
+    setError('')
+    setMessage('')
+    setIsCreateModalOpen(true)
+  }
+
+  function openCreateModalWithCurrentDraft() {
+    setMode('create')
+    setSelectedInvoice(null)
+    setError('')
+    setIsCreateModalOpen(true)
   }
 
   function openViewPanel(invoice) {
@@ -148,6 +170,7 @@ export function SalesInvoiceManagement() {
     setMode('list')
     setError('')
     setMessage('')
+    setIsCreateModalOpen(false)
   }
 
   function closePanel() {
@@ -155,6 +178,15 @@ export function SalesInvoiceManagement() {
     setSelectedInvoice(null)
     setFormData(initialFormData)
     setError('')
+    setIsCreateModalOpen(false)
+  }
+
+  function closeCreateModal() {
+    setIsCreateModalOpen(false)
+  }
+
+  function openDraftPreview() {
+    setSelectedInvoice(buildDraftInvoicePreview(formData, customers, parts))
   }
 
   async function handleSearch(value) {
@@ -215,6 +247,7 @@ export function SalesInvoiceManagement() {
         ? 'Sales invoice created and emailed to the customer.'
         : 'Sales invoice created, but email was not sent. Check Brevo settings.')
       setFormData(initialFormData)
+      setIsCreateModalOpen(false)
       setParts(await getParts())
       setCustomers(await searchVehicleCustomers(''))
     } catch (exception) {
@@ -225,17 +258,46 @@ export function SalesInvoiceManagement() {
   }
 
   return (
-    <div className={`grid gap-6 ${hasPanel ? 'xl:grid-cols-[minmax(0,1fr)_minmax(440px,0.72fr)]' : ''}`}>
-      <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-black uppercase text-red-600">Invoices</p>
-            <h2 className="mt-1 text-2xl font-black text-slate-950">{invoiceType === 'parts' ? 'Part Sales Invoices' : 'Booking Invoices'}</h2>
+    <div className={`grid items-start gap-6 ${hasPanel ? 'xl:grid-cols-[minmax(0,1fr)_minmax(460px,0.78fr)]' : ''}`}>
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 p-5 shadow-sm">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-orange-400 to-red-500" />
+        <div className="relative">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-red-600">Invoices</p>
+              <h2 className="mt-1 text-2xl font-black text-slate-950">{invoiceType === 'parts' ? 'Part Sales Invoices' : 'Booking Invoices'}</h2>
+              <p className="mt-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                {isLoading
+                  ? 'Loading records...'
+                  : `${invoiceType === 'parts' ? filteredInvoices.length : filteredBookingInvoices.length} record(s)`}
+              </p>
+            </div>
+            {invoiceType === 'parts' && (
+              <div className="flex flex-wrap items-center gap-2 lg:hidden">
+                <button
+                  className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--primary)] px-4 text-sm font-black text-white transition hover:bg-[var(--primary-hover)]"
+                  type="button"
+                  onClick={openCreatePanel}
+                >
+                  <FilePlus2 size={18} />
+                  New invoice
+                </button>
+                <button
+                  className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+                  type="button"
+                  onClick={openCreateModal}
+                >
+                  <FilePlus2 size={18} />
+                  Create in popup
+                </button>
+              </div>
+            )}
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+
+          <div className="mt-5 grid gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
+            <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
               <button
-                className={`min-h-10 rounded-md px-3 text-sm font-black transition ${invoiceType === 'parts' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-600 hover:text-slate-950'}`}
+                className={`min-h-10 rounded-lg px-3 text-sm font-black transition ${invoiceType === 'parts' ? 'bg-red-50 text-red-600 shadow-sm' : 'text-slate-600 hover:text-slate-950'}`}
                 type="button"
                 onClick={() => {
                   setInvoiceType('parts')
@@ -245,7 +307,7 @@ export function SalesInvoiceManagement() {
                 Part sales invoice
               </button>
               <button
-                className={`min-h-10 rounded-md px-3 text-sm font-black transition ${invoiceType === 'bookings' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-600 hover:text-slate-950'}`}
+                className={`min-h-10 rounded-lg px-3 text-sm font-black transition ${invoiceType === 'bookings' ? 'bg-red-50 text-red-600 shadow-sm' : 'text-slate-600 hover:text-slate-950'}`}
                 type="button"
                 onClick={() => {
                   setInvoiceType('bookings')
@@ -255,22 +317,30 @@ export function SalesInvoiceManagement() {
                 Booking invoice
               </button>
             </div>
-            <label className="relative block min-w-64">
+            <label className="relative block w-full min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
-                className="min-h-11 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-sm font-semibold text-slate-950 outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-red-100"
+                className="min-h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-3 text-sm font-semibold text-slate-950 outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-red-100"
                 placeholder="Search invoices"
                 value={query}
                 onChange={(event) => handleSearch(event.target.value)}
               />
             </label>
             <button
-              className={`inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--primary)] px-4 text-sm font-black text-white transition hover:bg-[var(--primary-hover)] ${invoiceType !== 'parts' ? 'hidden' : ''}`}
+              className={`hidden min-h-11 items-center gap-2 rounded-lg bg-[var(--primary)] px-4 text-sm font-black text-white transition hover:bg-[var(--primary-hover)] lg:inline-flex ${invoiceType !== 'parts' ? 'lg:hidden' : ''}`}
               type="button"
               onClick={openCreatePanel}
             >
               <FilePlus2 size={18} />
               New invoice
+            </button>
+            <button
+              className={`hidden min-h-11 items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-black text-slate-700 transition hover:bg-slate-50 lg:inline-flex ${invoiceType !== 'parts' ? 'lg:hidden' : ''}`}
+              type="button"
+              onClick={openCreateModal}
+            >
+              <FilePlus2 size={18} />
+              Create in popup
             </button>
           </div>
         </div>
@@ -279,10 +349,11 @@ export function SalesInvoiceManagement() {
         {message && <Message tone="success">{message}</Message>}
 
         {invoiceType === 'parts' ? (
-        <div className="mt-6 overflow-x-auto">
+        <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white/90">
+          <div className="overflow-x-auto">
           <table className={`${hasPanel ? 'min-w-[820px]' : 'min-w-[1080px]'} w-full text-left`}>
             <thead>
-              <tr className="border-b border-slate-200 text-xs font-black uppercase text-slate-500">
+              <tr className="border-b border-slate-200 bg-slate-50/80 text-xs font-black uppercase text-slate-500">
                 <th className="py-3 pr-4">Invoice</th>
                 <th className="py-3 pr-4">Customer</th>
                 <th className="py-3 pr-4">Status</th>
@@ -295,7 +366,7 @@ export function SalesInvoiceManagement() {
               {isLoading ? (
                 <tr><td className="py-5 text-sm font-semibold text-slate-600" colSpan={hasPanel ? 5 : 6}>Loading invoices...</td></tr>
               ) : filteredInvoices.length > 0 ? filteredInvoices.map((invoice) => (
-                <tr className="border-b border-slate-100 align-top last:border-0" key={invoice.salesInvoiceId}>
+                <tr className="border-b border-slate-100 align-top transition hover:bg-red-50/40 last:border-0" key={invoice.salesInvoiceId}>
                   <td className="py-4 pr-4">
                     <p className="text-sm font-black text-slate-950">{invoice.invoiceNumber}</p>
                     <p className="mt-1 text-xs font-semibold text-slate-500">{formatDate(invoice.invoiceDate)}</p>
@@ -327,12 +398,14 @@ export function SalesInvoiceManagement() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
         ) : (
-        <div className="mt-6 overflow-x-auto">
+        <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white/90">
+          <div className="overflow-x-auto">
           <table className="min-w-[1080px] w-full text-left">
             <thead>
-              <tr className="border-b border-slate-200 text-xs font-black uppercase text-slate-500">
+              <tr className="border-b border-slate-200 bg-slate-50/80 text-xs font-black uppercase text-slate-500">
                 <th className="py-3 pr-4">Invoice</th>
                 <th className="py-3 pr-4">Customer</th>
                 <th className="py-3 pr-4">Booking</th>
@@ -345,7 +418,7 @@ export function SalesInvoiceManagement() {
               {isLoading ? (
                 <tr><td className="py-5 text-sm font-semibold text-slate-600" colSpan={6}>Loading booking invoices...</td></tr>
               ) : filteredBookingInvoices.length > 0 ? filteredBookingInvoices.map((invoice) => (
-                <tr className="border-b border-slate-100 align-top last:border-0" key={invoice.bookingInvoiceId}>
+                <tr className="border-b border-slate-100 align-top transition hover:bg-red-50/40 last:border-0" key={invoice.bookingInvoiceId}>
                   <td className="py-4 pr-4">
                     <p className="text-sm font-black text-slate-950">{invoice.invoiceNumber}</p>
                     <p className="mt-1 text-xs font-semibold text-slate-500">{formatDate(invoice.invoiceDate)}</p>
@@ -378,11 +451,12 @@ export function SalesInvoiceManagement() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
         )}
       </section>
 
-      {mode === 'create' && (
+      {mode === 'create' && !isCreateModalOpen && (
         <InvoiceForm
           customers={customers}
           formData={formData}
@@ -391,12 +465,30 @@ export function SalesInvoiceManagement() {
           onClose={closePanel}
           onFieldChange={handleFieldChange}
           onItemChange={handleItemChange}
+          onOpenCreateModal={openCreateModalWithCurrentDraft}
+          onPreview={openDraftPreview}
           onRemoveItem={removeItem}
           onSubmit={handleSubmit}
           parts={parts}
           totals={totals}
         />
       )}
+
+      <CreateInvoiceModal
+        customers={customers}
+        formData={formData}
+        isOpen={isCreateModalOpen}
+        isSubmitting={isSubmitting}
+        onAddItem={addItem}
+        onClose={closeCreateModal}
+        onFieldChange={handleFieldChange}
+        onItemChange={handleItemChange}
+        onPreview={openDraftPreview}
+        onRemoveItem={removeItem}
+        onSubmit={handleSubmit}
+        parts={parts}
+        totals={totals}
+      />
 
       <InvoiceModal invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />
     </div>
@@ -406,11 +498,14 @@ export function SalesInvoiceManagement() {
 function InvoiceForm({
   customers,
   formData,
+  isModal = false,
   isSubmitting,
   onAddItem,
   onClose,
   onFieldChange,
   onItemChange,
+  onOpenCreateModal,
+  onPreview,
   onRemoveItem,
   onSubmit,
   parts,
@@ -423,11 +518,17 @@ function InvoiceForm({
     formData.paidAmount,
     formData.customerCreditAppliedAmount,
   )
+  const loyaltyGap = Math.max(0, LOYALTY_THRESHOLD - totals.subtotal)
+  const hasLoyaltyDiscount = totals.discount > 0
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <PanelHeader onClose={onClose} title="Create Sales Invoice" />
-      <form className="mt-6 grid gap-4" onSubmit={onSubmit}>
+    <section className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ${isModal ? 'mx-auto w-full max-w-5xl' : 'xl:sticky xl:top-6'}`}>
+      <PanelHeader
+        onClose={onClose}
+        onOpenCreateModal={!isModal ? onOpenCreateModal : undefined}
+        title="Create Sales Invoice"
+      />
+      <form className={`mt-6 grid gap-4 ${isModal ? '' : 'xl:max-h-[calc(100vh-12.5rem)] xl:overflow-y-auto xl:pr-1'}`} onSubmit={onSubmit}>
         {formData.sourcePartRequestId && (
           <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
             <p>Completing part request #{formData.sourcePartRequestId}</p>
@@ -445,19 +546,22 @@ function InvoiceForm({
             )}
           </div>
         )}
-        <SelectField label="Customer" name="customerId" onChange={onFieldChange} required value={formData.customerId}>
-          <option value="">Select customer</option>
-          {customers.map((customer) => (
-            <option key={customer.customerId} value={customer.customerId}>
-              {customer.fullName || `Customer #${customer.customerId}`} ({customer.email}) - credit {formatMoney(customer.creditBalance || 0)}
-            </option>
-          ))}
-        </SelectField>
-        <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-900">
-          Available customer credit: {formatMoney(creditBalance)}
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+          <p className="mb-3 text-xs font-black uppercase tracking-wider text-slate-500">Customer</p>
+          <SelectField label="Customer" name="customerId" onChange={onFieldChange} required value={formData.customerId}>
+            <option value="">Select customer</option>
+            {customers.map((customer) => (
+              <option key={customer.customerId} value={customer.customerId}>
+                {customer.fullName || `Customer #${customer.customerId}`} ({customer.email}) - credit {formatMoney(customer.creditBalance || 0)}
+              </option>
+            ))}
+          </SelectField>
+          <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-900">
+            Available customer credit: {formatMoney(creditBalance)}
+          </div>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm font-black text-slate-900">Invoice items</p>
             <button className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-xs font-black text-slate-700 transition hover:bg-slate-50" type="button" onClick={onAddItem}>
@@ -503,29 +607,45 @@ function InvoiceForm({
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <SelectField label="Payment method" name="paymentMethod" onChange={onFieldChange} value={formData.paymentMethod}>
-            <option value="Cash">Cash</option>
-            <option value="Card">Card</option>
-            <option value="Online">Online</option>
-            <option value="Credit">Credit</option>
-          </SelectField>
-          <TextField label="Paid amount" min="0" name="paidAmount" onChange={onFieldChange} step="0.01" type="number" value={formData.paidAmount} />
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+          <p className="mb-3 text-xs font-black uppercase tracking-wider text-slate-500">Payment & Notes</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <SelectField label="Payment method" name="paymentMethod" onChange={onFieldChange} value={formData.paymentMethod}>
+              <option value="Cash">Cash</option>
+              <option value="Card">Card</option>
+              <option value="Online">Online</option>
+              <option value="Credit">Credit</option>
+            </SelectField>
+            <TextField label="Paid amount" min="0" name="paidAmount" onChange={onFieldChange} step="0.01" type="number" value={formData.paidAmount} />
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <TextField
+              label="Use customer credit"
+              max={creditBalance}
+              min="0"
+              name="customerCreditAppliedAmount"
+              onChange={onFieldChange}
+              step="0.01"
+              type="number"
+              value={formData.customerCreditAppliedAmount}
+            />
+            <TextField label="Due date" name="dueDate" onChange={onFieldChange} type="date" value={formData.dueDate} />
+          </div>
+          <div className="mt-4">
+            <TextareaField label="Notes" name="notes" onChange={onFieldChange} value={formData.notes} />
+          </div>
         </div>
-        <TextField
-          label="Use customer credit"
-          max={creditBalance}
-          min="0"
-          name="customerCreditAppliedAmount"
-          onChange={onFieldChange}
-          step="0.01"
-          type="number"
-          value={formData.customerCreditAppliedAmount}
-        />
-        <TextField label="Due date" name="dueDate" onChange={onFieldChange} type="date" value={formData.dueDate} />
-        <TextareaField label="Notes" name="notes" onChange={onFieldChange} value={formData.notes} />
 
         <div className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm font-bold text-slate-700">
+          {hasLoyaltyDiscount ? (
+            <p className="rounded-lg bg-emerald-50 px-3 py-2 text-xs font-black uppercase tracking-wide text-emerald-700">
+              Loyalty unlocked: 10% discount applied.
+            </p>
+          ) : (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-black uppercase tracking-wide text-amber-700">
+              Spend {formatMoney(loyaltyGap)} more in this invoice to unlock 10% loyalty discount.
+            </p>
+          )}
           <SummaryRow label="Subtotal" value={formatMoney(totals.subtotal)} />
           <SummaryRow label="Loyalty discount" value={formatMoney(totals.discount)} />
           <SummaryRow label="Total" value={formatMoney(totals.total)} strong />
@@ -534,29 +654,103 @@ function InvoiceForm({
           <SummaryRow label="Return / saved credit" value={formatMoney(paymentSummary.returnAmount)} />
         </div>
 
-        <button
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-black text-white transition hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
-          disabled={isSubmitting}
-          type="submit"
-        >
-          <Mail size={18} />
-          {isSubmitting ? 'Creating...' : 'Create & email invoice'}
-        </button>
+        <div className={`grid gap-3 ${!isModal ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+          {!isModal && (
+            <button
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+              type="button"
+              onClick={onOpenCreateModal}
+            >
+              <FilePlus2 size={18} />
+              Full create popup
+            </button>
+          )}
+          <button
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+            type="button"
+            onClick={onPreview}
+          >
+            <Eye size={18} />
+            Open invoice popup
+          </button>
+          <button
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-black text-white transition hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={isSubmitting}
+            type="submit"
+          >
+            <Mail size={18} />
+            {isSubmitting ? 'Creating...' : 'Create & email invoice'}
+          </button>
+        </div>
       </form>
     </section>
   )
 }
 
-function PanelHeader({ onClose, title }) {
+function PanelHeader({ onClose, onOpenCreateModal, title }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        <p className="text-xs font-black uppercase text-red-600">Invoice</p>
+        <p className="text-xs font-black uppercase tracking-wider text-red-600">Invoice</p>
         <h2 className="mt-1 text-2xl font-black text-slate-950">{title}</h2>
       </div>
       <div className="flex gap-2">
-        <span className="grid h-11 w-11 place-items-center rounded-lg bg-red-50 text-[var(--primary)]"><ReceiptText size={22} /></span>
+        <span className="grid h-11 w-11 place-items-center rounded-lg bg-red-50 text-[var(--primary)]"><ReceiptText size={20} /></span>
+        {typeof onOpenCreateModal === 'function' && (
+          <button className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-xs font-black uppercase tracking-wide text-slate-700 transition hover:bg-slate-50" type="button" onClick={onOpenCreateModal}>
+            Popup
+          </button>
+        )}
         <button className="grid h-11 w-11 place-items-center rounded-lg border border-slate-300 text-slate-700 transition hover:bg-slate-50" type="button" aria-label="Close" onClick={onClose}><X size={18} /></button>
+      </div>
+    </div>
+  )
+}
+
+function CreateInvoiceModal({
+  customers,
+  formData,
+  isOpen,
+  isSubmitting,
+  onAddItem,
+  onClose,
+  onFieldChange,
+  onItemChange,
+  onPreview,
+  onRemoveItem,
+  onSubmit,
+  parts,
+  totals,
+}) {
+  if (!isOpen) {
+    return null
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 px-3 py-6 backdrop-blur-sm"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose()
+        }
+      }}
+    >
+      <div className="mx-auto w-full max-w-[1220px]">
+        <InvoiceForm
+          customers={customers}
+          formData={formData}
+          isModal
+          isSubmitting={isSubmitting}
+          onAddItem={onAddItem}
+          onClose={onClose}
+          onFieldChange={onFieldChange}
+          onItemChange={onItemChange}
+          onPreview={onPreview}
+          onRemoveItem={onRemoveItem}
+          onSubmit={onSubmit}
+          parts={parts}
+          totals={totals}
+        />
       </div>
     </div>
   )
@@ -566,7 +760,7 @@ function SelectField({ children, label, name, onChange, required = false, value 
   return (
     <label className="grid gap-2 text-sm font-bold text-slate-700">
       {label}
-      <select className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-slate-950 outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-red-100" name={name} required={required} value={value} onChange={onChange}>{children}</select>
+      <select className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 text-slate-950 outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-red-100" name={name} required={required} value={value} onChange={onChange}>{children}</select>
     </label>
   )
 }
@@ -575,7 +769,7 @@ function TextField({ label, name, onChange, value, ...props }) {
   return (
     <label className="grid gap-2 text-sm font-bold text-slate-700">
       {label}
-      <input className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-slate-950 outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-red-100" name={name} onChange={onChange} value={value} {...props} />
+      <input className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 text-slate-950 outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-red-100" name={name} onChange={onChange} value={value} {...props} />
     </label>
   )
 }
@@ -584,7 +778,7 @@ function TextareaField({ label, name, onChange, value }) {
   return (
     <label className="grid gap-2 text-sm font-bold text-slate-700">
       {label}
-      <textarea className="min-h-24 rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-950 outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-red-100" maxLength={500} name={name} onChange={onChange} value={value} />
+      <textarea className="min-h-24 rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-950 outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-red-100" maxLength={500} name={name} onChange={onChange} value={value} />
     </label>
   )
 }
@@ -601,8 +795,8 @@ function Detail({ label, value }) {
 function SummaryRow({ label, strong = false, value }) {
   return (
     <div className={`flex justify-between gap-4 ${strong ? 'text-slate-950' : ''}`}>
-      <span>{label}</span>
-      <span>{value}</span>
+      <span className="font-semibold">{label}</span>
+      <span className="font-black text-slate-900">{value}</span>
     </div>
   )
 }
@@ -643,6 +837,75 @@ function toPayload(data) {
   }
 }
 
+function buildDraftInvoicePreview(formData, customers, parts) {
+  const selectedCustomer = customers.find((customer) => String(customer.customerId) === String(formData.customerId))
+  const subtotalData = calculateTotals(formData.items, parts)
+  const paymentSummary = calculatePaymentSummary(
+    subtotalData.total,
+    formData.paidAmount,
+    formData.customerCreditAppliedAmount,
+  )
+  const paidAmount = Number(formData.paidAmount || 0)
+  const creditApplied = Number(paymentSummary.creditApplied || 0)
+
+  let paymentStatus = 'Credit'
+  if (paymentSummary.due <= 0) {
+    paymentStatus = 'Paid'
+  } else if (paidAmount > 0 || creditApplied > 0) {
+    paymentStatus = 'PartiallyPaid'
+  }
+
+  const items = formData.items.map((item, index) => {
+    const matchedPart = parts.find((current) => String(current.partId) === String(item.partId))
+    const quantity = Number.parseInt(item.quantity || '0', 10)
+    const unitPrice = Number(item.unitPrice || matchedPart?.sellingPrice || 0)
+
+    return {
+      salesInvoiceItemId: `draft-${index + 1}`,
+      partId: item.partId ? Number.parseInt(item.partId, 10) : null,
+      partName: item.partName || matchedPart?.name || 'Custom item',
+      partNumber: item.partNumber || matchedPart?.partNumber || '',
+      quantity,
+      unitPrice,
+      lineTotal: quantity * unitPrice,
+    }
+  })
+
+  return {
+    invoiceType: 'sales',
+    salesInvoiceId: 0,
+    invoiceNumber: 'DRAFT PREVIEW',
+    customerId: selectedCustomer?.customerId ?? 0,
+    customerName: selectedCustomer?.fullName || 'Selected customer',
+    customerEmail: selectedCustomer?.email || 'Not selected',
+    customerPhone: selectedCustomer?.phone || '',
+    staffId: 0,
+    staffName: 'Current staff',
+    staffEmail: '',
+    sourcePartRequestId: formData.sourcePartRequestId,
+    invoiceDate: new Date().toISOString(),
+    subtotal: subtotalData.subtotal,
+    discountAmount: subtotalData.discount,
+    discountReason: subtotalData.discount > 0 ? 'Loyalty discount: 10% for purchases above 5000' : '',
+    taxAmount: 0,
+    totalAmount: subtotalData.total,
+    paidAmount,
+    customerCreditAppliedAmount: creditApplied,
+    creditAmount: paymentSummary.due,
+    returnAmount: paymentSummary.returnAmount,
+    customerCreditAddedAmount: paymentSummary.returnAmount,
+    paymentStatus,
+    paymentMethod: formData.paymentMethod,
+    dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
+    notes: formData.notes || '',
+    emailSent: false,
+    isCancelled: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: null,
+    items,
+  }
+}
+
 function calculatePaymentSummary(total, paidAmount, customerCreditAppliedAmount) {
   const creditApplied = Math.min(Number(customerCreditAppliedAmount || 0), Number(total || 0))
   const payable = Math.max(Number(total || 0) - creditApplied, 0)
@@ -661,7 +924,7 @@ function calculateTotals(items, parts) {
     const unitPrice = Number(item.unitPrice || part?.sellingPrice || 0)
     return total + Number(item.quantity || 0) * unitPrice
   }, 0)
-  const discount = subtotal > 5000 ? subtotal * 0.1 : 0
+  const discount = subtotal > LOYALTY_THRESHOLD ? subtotal * LOYALTY_DISCOUNT_RATE : 0
 
   return {
     subtotal,
