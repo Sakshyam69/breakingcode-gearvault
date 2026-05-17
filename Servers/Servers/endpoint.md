@@ -28,11 +28,14 @@ Use the `Authorization: Bearer <token>` header for every protected endpoint.
 
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
-| POST | `http://localhost:5223/api/auth/login` | Public | Login with email and password. |
 | POST | `http://localhost:5223/api/auth/register/customer` | Public | Register a new customer account. |
 | POST | `http://localhost:5223/api/auth/staff` | Admin | Create a staff account. |
+| POST | `http://localhost:5223/api/auth/customers` | Admin, Staff | Create a customer account from the staff/admin dashboard. |
+| POST | `http://localhost:5223/api/auth/login` | Public | Login with email and password. |
 | GET | `http://localhost:5223/api/auth/me` | Authenticated user | Get the currently logged-in user. |
 | GET | `http://localhost:5223/api/auth/users` | Admin | List all users. |
+| PUT | `http://localhost:5223/api/auth/users/{userId}/role` | Admin | Change a user's role. |
+| PUT | `http://localhost:5223/api/auth/users/{userId}/active` | Admin | Activate or deactivate a user account. |
 
 ### Profile Endpoints
 
@@ -40,6 +43,8 @@ Use the `Authorization: Bearer <token>` header for every protected endpoint.
 | --- | --- | --- | --- |
 | GET | `http://localhost:5223/api/profile/me` | Authenticated user | Get the current user's profile details. |
 | PUT | `http://localhost:5223/api/profile/me` | Authenticated user | Update the current user's profile details. |
+| POST | `http://localhost:5223/api/profile/password-change-code` | Authenticated user | Send a password-change code to the user's email. |
+| PUT | `http://localhost:5223/api/profile/password` | Authenticated user | Change password using current password and code verification. |
 | POST | `http://localhost:5223/api/profile/complete-setup` | Authenticated user | Complete account setup and set a new password. |
 
 ### Upload Endpoints
@@ -47,7 +52,15 @@ Use the `Authorization: Bearer <token>` header for every protected endpoint.
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
 | POST | `http://localhost:5223/api/uploads/profile-image` | Authenticated user | Upload a profile image file. |
-| POST | `http://localhost:5223/api/uploads/vehicle-image` | Authenticated user | Upload a customer vehicle image file. |
+| POST | `http://localhost:5223/api/uploads/vehicle-image` | Authenticated user | Upload a vehicle image file. |
+
+### Notification Endpoints
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/notifications/me` | Authenticated user | List notifications for the logged-in user. |
+| PUT | `http://localhost:5223/api/notifications/{notificationId}/read` | Authenticated user | Mark one notification as read. |
+| PUT | `http://localhost:5223/api/notifications/read-all` | Authenticated user | Mark all notifications as read. |
 
 ### Vendor Endpoints
 
@@ -63,10 +76,10 @@ Use the `Authorization: Bearer <token>` header for every protected endpoint.
 
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/parts` | Admin, Staff | List active inventory parts. |
-| GET | `http://localhost:5223/api/parts/{partId}` | Admin, Staff | Get one active part by ID. |
-| POST | `http://localhost:5223/api/parts` | Admin | Create a new inventory part with part details. |
-| PUT | `http://localhost:5223/api/parts/{partId}` | Admin | Update an existing inventory part and part details. |
+| GET | `http://localhost:5223/api/parts` | Admin, Staff, Customer | List active inventory parts. |
+| GET | `http://localhost:5223/api/parts/{partId}` | Admin, Staff, Customer | Get one active part by ID. |
+| POST | `http://localhost:5223/api/parts` | Admin | Create a new inventory part. |
+| PUT | `http://localhost:5223/api/parts/{partId}` | Admin | Update an existing inventory part. |
 | DELETE | `http://localhost:5223/api/parts/{partId}` | Admin | Soft delete a part from active inventory. |
 
 ### Purchase Invoice Endpoints
@@ -94,6 +107,26 @@ Use the `Authorization: Bearer <token>` header for every protected endpoint.
 | PUT | `http://localhost:5223/api/customer-vehicles/{vehicleId}` | Admin, Staff | Update any customer vehicle. |
 | DELETE | `http://localhost:5223/api/customer-vehicles/{vehicleId}` | Admin, Staff | Soft delete any customer vehicle. |
 
+### Part Request Endpoints
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/part-requests/me` | Customer | List the logged-in customer's part requests. |
+| POST | `http://localhost:5223/api/part-requests/me` | Customer | Create a part request. |
+| PUT | `http://localhost:5223/api/part-requests/me/{partRequestId}/cancel` | Customer | Cancel a submitted part request. |
+| GET | `http://localhost:5223/api/part-requests?query={query}&status={status}` | Admin, Staff | Search/filter part requests. |
+| PUT | `http://localhost:5223/api/part-requests/{partRequestId}/status` | Admin, Staff | Update part request status (for example approve/reject/fulfilled). |
+
+### Sales Invoice Endpoints
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/sales-invoices?query={query}` | Admin, Staff | Search sales invoices. |
+| GET | `http://localhost:5223/api/sales-invoices/me` | Customer | List the logged-in customer's sales invoices. |
+| GET | `http://localhost:5223/api/sales-invoices/{salesInvoiceId}` | Admin, Staff, Customer owner | Get one sales invoice by ID. |
+| POST | `http://localhost:5223/api/sales-invoices` | Admin, Staff | Create a sales invoice. |
+| POST | `http://localhost:5223/api/sales-invoices/from-part-request/{partRequestId}` | Admin, Staff | Create a sales invoice directly from a part request. |
+
 ### Service Appointment Endpoints
 
 | Method | Endpoint URL | Access | Description |
@@ -114,15 +147,38 @@ Use the `Authorization: Bearer <token>` header for every protected endpoint.
 | GET | `http://localhost:5223/api/booking-invoices/{bookingInvoiceId}` | Admin, Staff, Customer owner | Get one service booking invoice by ID. |
 | POST | `http://localhost:5223/api/booking-invoices` | Admin, Staff | Create one invoice for a completed service appointment. |
 
+### Review Endpoints
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/reviews/approved` | Public | List approved reviews for public display. |
+| GET | `http://localhost:5223/api/reviews?query={query}&status={status}` | Admin, Staff | Search/filter all reviews. |
+| GET | `http://localhost:5223/api/reviews/me` | Customer | List the logged-in customer's reviews. |
+| POST | `http://localhost:5223/api/reviews` | Customer | Create a new review. |
+| GET | `http://localhost:5223/api/reviews/{reviewId}` | Admin, Staff, Customer owner | Get one review by ID. |
+| PUT | `http://localhost:5223/api/reviews/{reviewId}/status` | Admin, Staff | Approve/reject or otherwise update review status. |
+
 ### Customer Report Endpoints
 
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
 | GET | `http://localhost:5223/api/customer-reports?from={date}&to={date}&reportType={Combined\|SalesOnly\|ServicesOnly}&query={query}` | Admin, Staff | Generate customer reports for best clients, regulars, pending credits, parts sales, and services. |
-| GET | `http://localhost:5223/api/customer-reports/requests` | Admin, Staff | List customer report requests. |
+| GET | `http://localhost:5223/api/customer-reports/requests?status={status}` | Admin, Staff | List customer report requests. |
 | PUT | `http://localhost:5223/api/customer-reports/requests/{requestId}/complete` | Admin, Staff | Mark a customer report request as prepared and notify the customer. |
 | GET | `http://localhost:5223/api/customer-reports/requests/me` | Customer | List the logged-in customer's report requests. |
 | POST | `http://localhost:5223/api/customer-reports/requests/me` | Customer | Request a sales-only, services-only, or combined report from staff. |
+
+### Financial Report Endpoints
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/financial-reports/summary?from={date}&to={date}&granularity={Daily\|Weekly\|Monthly}` | Admin | Generate financial summary reports. |
+
+### Admin Insight Endpoints
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `http://localhost:5223/api/admin/insights/overdue-credits?take={1-100}` | Admin | List top overdue-credit customers for follow-up/reminders. |
 
 ## EF Core Commands
 
