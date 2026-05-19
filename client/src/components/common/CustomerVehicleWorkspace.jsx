@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Car, Edit3, Eye, Plus, Search, Star, Trash2, UserRound, X } from 'lucide-react'
+import { Activity, AlertTriangle, Car, Edit3, Eye, Gauge, Plus, RefreshCw, Search, Star, Trash2, UserRound, Wrench, X } from 'lucide-react'
 import {
   createCustomerVehicle,
   createMyVehicle,
@@ -9,6 +9,9 @@ import {
   getMyVehicles,
   searchCustomerVehicles,
   searchVehicleCustomers,
+  analyzeVehicleHealth,
+  getLatestVehicleHealthPrediction,
+  getVehicleHealthPredictionHistory,
   updateCustomerVehicle,
   updateMyVehicle,
   uploadVehicleImage,
@@ -788,6 +791,110 @@ function VehicleFormPanel({
 }
 
 function VehicleDetailsPanel({ onClose, onEdit, showCustomer, vehicle }) {
+  const vehicleId = vehicle?.customerVehicleId
+  const [prediction, setPrediction] = useState(null)
+  const [predictionHistory, setPredictionHistory] = useState([])
+  const [isPredictionLoading, setIsPredictionLoading] = useState(false)
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+  const [healthError, setHealthError] = useState('')
+  const [healthMessage, setHealthMessage] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadLatestPrediction() {
+      if (!vehicleId) {
+        return
+      }
+
+      setHealthError('')
+      setHealthMessage('')
+      setPrediction(null)
+      setPredictionHistory([])
+      setShowHistory(false)
+      setIsPredictionLoading(true)
+
+      try {
+        const latestPrediction = await getLatestVehicleHealthPrediction(vehicleId)
+        if (isMounted) {
+          setPrediction(latestPrediction)
+        }
+      } catch (exception) {
+        if (!isMounted) {
+          return
+        }
+
+        if (isPredictionNotFoundError(exception.message)) {
+          setHealthMessage('No AI prediction found yet. Run analysis to generate one.')
+        } else {
+          setHealthError(exception.message)
+        }
+      } finally {
+        if (isMounted) {
+          setIsPredictionLoading(false)
+        }
+      }
+    }
+
+    loadLatestPrediction()
+
+    return () => {
+      isMounted = false
+    }
+  }, [vehicleId])
+
+  async function handleAnalyze(forceRefresh = false) {
+    if (!vehicleId) {
+      return
+    }
+
+    setHealthError('')
+    setHealthMessage('')
+    setIsPredictionLoading(true)
+
+    try {
+      const analyzedPrediction = await analyzeVehicleHealth(vehicleId, { forceRefresh })
+      setPrediction(analyzedPrediction)
+      setHealthMessage(forceRefresh ? 'Vehicle health prediction refreshed.' : 'Vehicle health prediction generated.')
+
+      if (showHistory) {
+        await loadPredictionHistory()
+      }
+    } catch (exception) {
+      setHealthError(exception.message)
+    } finally {
+      setIsPredictionLoading(false)
+    }
+  }
+
+  async function loadPredictionHistory() {
+    if (!vehicleId) {
+      return
+    }
+
+    setIsHistoryLoading(true)
+    setHealthError('')
+
+    try {
+      const history = await getVehicleHealthPredictionHistory(vehicleId, 8)
+      setPredictionHistory(history)
+    } catch (exception) {
+      setHealthError(exception.message)
+    } finally {
+      setIsHistoryLoading(false)
+    }
+  }
+
+  async function handleToggleHistory() {
+    const nextValue = !showHistory
+    setShowHistory(nextValue)
+
+    if (nextValue && predictionHistory.length === 0) {
+      await loadPredictionHistory()
+    }
+  }
+
   if (!vehicle) {
     return null
   }
@@ -820,6 +927,9 @@ function VehicleDetailsPanel({ onClose, onEdit, showCustomer, vehicle }) {
     })
   }
 
+  const predictedFailures = toPredictionList(prediction?.predictedFailures)
+  const recommendedParts = toPredictionList(prediction?.recommendedParts)
+
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <PanelHeader eyebrow="Vehicle profile" icon={UserRound} onClose={onClose} title={vehicle.vehicleNumber} />
@@ -848,6 +958,164 @@ function VehicleDetailsPanel({ onClose, onEdit, showCustomer, vehicle }) {
         <p className="mt-1 whitespace-pre-wrap text-sm font-semibold text-slate-700">
           {vehicle.notes || 'No notes added.'}
         </p>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-black uppercase text-slate-500">Vehicle AI</p>
+            <h3 className="mt-1 text-lg font-black text-slate-950">Health analysis</h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-3 py-2 text-xs font-black uppercase tracking-wide text-white transition hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
+              type="button"
+              disabled={isPredictionLoading}
+              onClick={() => handleAnalyze(false)}
+            >
+              <Activity size={15} />
+              {prediction ? 'Analyze again' : 'Analyze vehicle'}
+            </button>
+            <button
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-black uppercase tracking-wide text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+              type="button"
+              disabled={isPredictionLoading}
+              onClick={() => handleAnalyze(true)}
+            >
+              <RefreshCw className={isPredictionLoading ? 'animate-spin' : ''} size={15} />
+              Refresh
+            </button>
+            <button
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-black uppercase tracking-wide text-slate-700 transition hover:bg-slate-50"
+              type="button"
+              onClick={handleToggleHistory}
+            >
+              <Gauge size={15} />
+              {showHistory ? 'Hide history' : 'View history'}
+            </button>
+          </div>
+        </div>
+
+        {healthError && (
+          <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+            {healthError}
+          </p>
+        )}
+
+        {healthMessage && !healthError && (
+          <p className="mt-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700">
+            {healthMessage}
+          </p>
+        )}
+
+        {isPredictionLoading && !prediction ? (
+          <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-600">
+            Generating AI prediction...
+          </p>
+        ) : prediction ? (
+          <div className="mt-3 grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+                <p className="text-xs font-black uppercase text-slate-500">Risk level</p>
+                <span className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-black uppercase ${getRiskBadgeClass(prediction.riskLevel)}`}>
+                  {prediction.riskLevel || 'medium'}
+                </span>
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+                <p className="text-xs font-black uppercase text-slate-500">Urgency</p>
+                <span className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-black uppercase ${getUrgencyBadgeClass(prediction.urgency)}`}>
+                  {prediction.urgency || 'normal'}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+                <p className="text-xs font-black uppercase text-slate-500">Next check mileage</p>
+                <p className="mt-1 text-sm font-bold text-slate-900">
+                  {prediction.nextCheckMileage !== null && prediction.nextCheckMileage !== undefined
+                    ? `${new Intl.NumberFormat('en').format(prediction.nextCheckMileage)} km`
+                    : 'Not set'}
+                </p>
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+                <p className="text-xs font-black uppercase text-slate-500">Next check date</p>
+                <p className="mt-1 text-sm font-bold text-slate-900">{formatDate(prediction.nextCheckDate)}</p>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+              <p className="text-xs font-black uppercase text-slate-500">Reasoning</p>
+              <p className="mt-1 text-sm font-semibold text-slate-700">{prediction.why || 'No explanation provided.'}</p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+                <p className="flex items-center gap-2 text-xs font-black uppercase text-slate-500"><AlertTriangle size={13} /> Predicted failures</p>
+                {predictedFailures.length > 0 ? (
+                  <ul className="mt-2 grid gap-1">
+                    {predictedFailures.map((item) => (
+                      <li className="text-sm font-semibold text-slate-700" key={item}>• {item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-sm font-semibold text-slate-600">No specific failures listed.</p>
+                )}
+              </div>
+
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+                <p className="flex items-center gap-2 text-xs font-black uppercase text-slate-500"><Wrench size={13} /> Recommended parts</p>
+                {recommendedParts.length > 0 ? (
+                  <ul className="mt-2 grid gap-1">
+                    {recommendedParts.map((item) => (
+                      <li className="text-sm font-semibold text-slate-700" key={item}>• {item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-sm font-semibold text-slate-600">No specific parts listed.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3">
+              <p className="text-xs font-black uppercase text-amber-700">Disclaimer</p>
+              <p className="mt-1 text-sm font-semibold text-amber-800">
+                {prediction.disclaimer || 'AI guidance is supportive only. Confirm with a technician.'}
+              </p>
+              <p className="mt-2 text-xs font-bold text-amber-700">
+                Generated {formatDateTime(prediction.generatedAt)} • model {prediction.modelUsed || 'N/A'}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        {showHistory && (
+          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+            <p className="text-xs font-black uppercase text-slate-500">Prediction history</p>
+            {isHistoryLoading ? (
+              <p className="mt-2 text-sm font-semibold text-slate-600">Loading history...</p>
+            ) : predictionHistory.length > 0 ? (
+              <div className="mt-2 grid gap-2">
+                {predictionHistory.map((item) => (
+                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2" key={item.vehicleHealthPredictionId}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-black uppercase ${getRiskBadgeClass(item.riskLevel)}`}>
+                        {item.riskLevel}
+                      </span>
+                      <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-black uppercase ${getUrgencyBadgeClass(item.urgency)}`}>
+                        {item.urgency}
+                      </span>
+                      <span className="text-xs font-semibold text-slate-500">{formatDateTime(item.generatedAt)}</span>
+                    </div>
+                    <p className="mt-1 text-sm font-semibold text-slate-700">{item.why || 'No explanation provided.'}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-sm font-semibold text-slate-600">No history found yet.</p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="mt-5 flex flex-wrap gap-3">
@@ -1064,6 +1332,65 @@ function getCustomerDisplayName(customer) {
   return customerId ? `Customer #${customerId}` : 'Profile pending'
 }
 
+
+function isPredictionNotFoundError(message) {
+  const normalizedMessage = String(message ?? '').toLowerCase()
+  return normalizedMessage.includes('no prediction found')
+}
+
+function toPredictionList(items) {
+  if (!Array.isArray(items)) {
+    return []
+  }
+
+  return items
+    .map((item) => String(item ?? '').trim())
+    .filter((item, index, list) => item.length > 0 && list.indexOf(item) === index)
+}
+
+function getRiskBadgeClass(riskLevel) {
+  switch ((riskLevel || '').toLowerCase()) {
+    case 'critical':
+      return 'border border-rose-300 bg-rose-100 text-rose-800'
+    case 'high':
+      return 'border border-orange-300 bg-orange-100 text-orange-800'
+    case 'medium':
+      return 'border border-amber-300 bg-amber-100 text-amber-800'
+    case 'low':
+      return 'border border-emerald-300 bg-emerald-100 text-emerald-800'
+    default:
+      return 'border border-slate-300 bg-slate-100 text-slate-700'
+  }
+}
+
+function getUrgencyBadgeClass(urgency) {
+  switch ((urgency || '').toLowerCase()) {
+    case 'urgent':
+      return 'border border-rose-300 bg-rose-100 text-rose-800'
+    case 'high':
+      return 'border border-orange-300 bg-orange-100 text-orange-800'
+    case 'normal':
+      return 'border border-blue-300 bg-blue-100 text-blue-800'
+    case 'low':
+      return 'border border-emerald-300 bg-emerald-100 text-emerald-800'
+    default:
+      return 'border border-slate-300 bg-slate-100 text-slate-700'
+  }
+}
+
+function formatDateTime(value) {
+  if (!value) {
+    return 'Not set'
+  }
+
+  return new Intl.DateTimeFormat('en', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
+}
 function formatMileage(value) {
   if (value === null || value === undefined) {
     return 'Mileage not set'

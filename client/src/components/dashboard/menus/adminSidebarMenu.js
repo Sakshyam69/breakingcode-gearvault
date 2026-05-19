@@ -1,4 +1,5 @@
 import {
+  Activity,
   BarChart3,
   Boxes,
   LayoutDashboard,
@@ -15,5 +16,6 @@ export const adminSidebarMenu = [
   { label: 'Staff Management', to: '/admin/staff-management', icon: Users },
   { label: 'Invoices', to: '/admin/invoices', icon: ReceiptText },
   { label: 'Reports', to: '/admin/reports', icon: BarChart3 },
+  { label: 'AI Services', to: '/admin/ai-services', icon: Activity },
   { label: 'Settings', to: '/admin/settings', icon: Settings },
 ]

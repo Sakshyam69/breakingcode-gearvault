@@ -20,165 +20,175 @@ http://localhost:5223/swagger
 | Staff | `staff@autocare.local` | `Staff@12345` |
 | Customer | `customer@autocare.local` | `Customer@12345` |
 
-## Endpoints
+## Feature-Wise Endpoint Classification (AA)
 
-Use the `Authorization: Bearer <token>` header for every protected endpoint.
+All endpoint URLs below are relative paths. Use `Authorization: Bearer <token>` for protected endpoints.
 
-### Auth Endpoints
-
-| Method | Endpoint URL | Access | Description |
-| --- | --- | --- | --- |
-| POST | `http://localhost:5223/api/auth/register/customer` | Public | Register a new customer account. |
-| POST | `http://localhost:5223/api/auth/staff` | Admin | Create a staff account. |
-| POST | `http://localhost:5223/api/auth/customers` | Admin, Staff | Create a customer account from the staff/admin dashboard. |
-| POST | `http://localhost:5223/api/auth/login` | Public | Login with email and password. |
-| GET | `http://localhost:5223/api/auth/me` | Authenticated user | Get the currently logged-in user. |
-| GET | `http://localhost:5223/api/auth/users` | Admin | List all users. |
-| PUT | `http://localhost:5223/api/auth/users/{userId}/role` | Admin | Change a user's role. |
-| PUT | `http://localhost:5223/api/auth/users/{userId}/active` | Admin | Activate or deactivate a user account. |
-
-### Profile Endpoints
+### Feature 1: Admin can generate and view financial reports (daily, monthly, yearly)
 
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/profile/me` | Authenticated user | Get the current user's profile details. |
-| PUT | `http://localhost:5223/api/profile/me` | Authenticated user | Update the current user's profile details. |
-| POST | `http://localhost:5223/api/profile/password-change-code` | Authenticated user | Send a password-change code to the user's email. |
-| PUT | `http://localhost:5223/api/profile/password` | Authenticated user | Change password using current password and code verification. |
-| POST | `http://localhost:5223/api/profile/complete-setup` | Authenticated user | Complete account setup and set a new password. |
+| GET | `/api/financial-reports/summary?from={date}&to={date}&granularity={Daily\|Monthly\|Yearly}` | Admin | Generate financial summary reports by day, month, or year. |
 
-### Upload Endpoints
+### Feature 2: Admin can manage staff registration and roles
 
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
-| POST | `http://localhost:5223/api/uploads/profile-image` | Authenticated user | Upload a profile image file. |
-| POST | `http://localhost:5223/api/uploads/vehicle-image` | Authenticated user | Upload a vehicle image file. |
+| POST | `/api/auth/staff` | Admin | Register a new staff account. |
+| GET | `/api/auth/users` | Admin | View all users. |
+| PUT | `/api/auth/users/{userId}/role` | Admin | Update user role (except self-role change). |
+| PUT | `/api/auth/users/{userId}/active` | Admin | Activate/deactivate user account (except self-deactivation). |
 
-### Notification Endpoints
-
-| Method | Endpoint URL | Access | Description |
-| --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/notifications/me` | Authenticated user | List notifications for the logged-in user. |
-| PUT | `http://localhost:5223/api/notifications/{notificationId}/read` | Authenticated user | Mark one notification as read. |
-| PUT | `http://localhost:5223/api/notifications/read-all` | Authenticated user | Mark all notifications as read. |
-
-### Vendor Endpoints
+### Feature 3: Admin can perform parts management (purchase, edit, delete)
 
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/vendors` | Admin, Staff | List active vendors. |
-| GET | `http://localhost:5223/api/vendors/{vendorId}` | Admin, Staff | Get one active vendor by ID. |
-| POST | `http://localhost:5223/api/vendors` | Admin, Staff | Create a new vendor. |
-| PUT | `http://localhost:5223/api/vendors/{vendorId}` | Admin, Staff | Update an existing vendor. |
-| DELETE | `http://localhost:5223/api/vendors/{vendorId}` | Admin, Staff | Soft delete a vendor from the active vendor list. |
+| GET | `/api/parts` | Admin, Staff, Customer | View parts inventory list. |
+| GET | `/api/parts/{partId}` | Admin, Staff, Customer | View part details. |
+| POST | `/api/parts` | Admin | Create a new inventory part. |
+| PUT | `/api/parts/{partId}` | Admin | Edit part details/pricing/stock fields. |
+| DELETE | `/api/parts/{partId}` | Admin | Soft delete a part from active inventory. |
 
-### Parts / Inventory Endpoints
-
-| Method | Endpoint URL | Access | Description |
-| --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/parts` | Admin, Staff, Customer | List active inventory parts. |
-| GET | `http://localhost:5223/api/parts/{partId}` | Admin, Staff, Customer | Get one active part by ID. |
-| POST | `http://localhost:5223/api/parts` | Admin | Create a new inventory part. |
-| PUT | `http://localhost:5223/api/parts/{partId}` | Admin | Update an existing inventory part. |
-| DELETE | `http://localhost:5223/api/parts/{partId}` | Admin | Soft delete a part from active inventory. |
-
-### Purchase Invoice Endpoints
+### Feature 4: Admin can create purchase invoices for stock updates
 
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/purchase-invoices` | Admin | List purchase invoices with vendor and item details. |
-| GET | `http://localhost:5223/api/purchase-invoices/{purchaseInvoiceId}` | Admin | Get one purchase invoice by ID. |
-| POST | `http://localhost:5223/api/purchase-invoices` | Admin | Create a purchase invoice and increase purchased part stock. |
-| PUT | `http://localhost:5223/api/purchase-invoices/{purchaseInvoiceId}` | Admin | Update a purchase invoice and recalculate stock movement. |
-| DELETE | `http://localhost:5223/api/purchase-invoices/{purchaseInvoiceId}` | Admin | Cancel a purchase invoice and reverse stock movement. |
+| POST | `/api/purchase-invoices` | Admin | Create purchase invoice and increase stock quantities. |
+| GET | `/api/purchase-invoices` | Admin | View purchase invoices. |
+| GET | `/api/purchase-invoices/{purchaseInvoiceId}` | Admin | View one purchase invoice. |
+| PUT | `/api/purchase-invoices/{purchaseInvoiceId}` | Admin | Edit purchase invoice and recalculate stock movement. |
+| DELETE | `/api/purchase-invoices/{purchaseInvoiceId}` | Admin | Cancel purchase invoice and reverse stock movement. |
 
-### Customer Vehicle Endpoints
-
-| Method | Endpoint URL | Access | Description |
-| --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/customer-vehicles/me` | Customer | List the logged-in customer's active vehicles. |
-| POST | `http://localhost:5223/api/customer-vehicles/me` | Customer | Add a vehicle for the logged-in customer. |
-| PUT | `http://localhost:5223/api/customer-vehicles/me/{vehicleId}` | Customer | Update one of the logged-in customer's vehicles. |
-| DELETE | `http://localhost:5223/api/customer-vehicles/me/{vehicleId}` | Customer | Soft delete one of the logged-in customer's vehicles. |
-| GET | `http://localhost:5223/api/customer-vehicles/customers?query={query}` | Admin, Staff | Search customers by name, email, phone, or ID for vehicle management. |
-| GET | `http://localhost:5223/api/customer-vehicles/search?query={query}` | Admin, Staff | Search vehicles by vehicle number, customer name, phone, email, customer ID, make, or model. |
-| GET | `http://localhost:5223/api/customer-vehicles/customer/{customerId}` | Admin, Staff | List active vehicles for a selected customer. |
-| POST | `http://localhost:5223/api/customer-vehicles/customer/{customerId}` | Admin, Staff | Add a vehicle for a selected customer. |
-| PUT | `http://localhost:5223/api/customer-vehicles/{vehicleId}` | Admin, Staff | Update any customer vehicle. |
-| DELETE | `http://localhost:5223/api/customer-vehicles/{vehicleId}` | Admin, Staff | Soft delete any customer vehicle. |
-
-### Part Request Endpoints
+### Feature 5: Admin can manage vendor details (CRUD operations)
 
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/part-requests/me` | Customer | List the logged-in customer's part requests. |
-| POST | `http://localhost:5223/api/part-requests/me` | Customer | Create a part request. |
-| PUT | `http://localhost:5223/api/part-requests/me/{partRequestId}/cancel` | Customer | Cancel a submitted part request. |
-| GET | `http://localhost:5223/api/part-requests?query={query}&status={status}` | Admin, Staff | Search/filter part requests. |
-| PUT | `http://localhost:5223/api/part-requests/{partRequestId}/status` | Admin, Staff | Update part request status (for example approve/reject/fulfilled). |
+| GET | `/api/vendors` | Admin, Staff | List vendors. |
+| GET | `/api/vendors/{vendorId}` | Admin, Staff | View one vendor. |
+| POST | `/api/vendors` | Admin, Staff | Create vendor. |
+| PUT | `/api/vendors/{vendorId}` | Admin, Staff | Update vendor. |
+| DELETE | `/api/vendors/{vendorId}` | Admin, Staff | Soft delete vendor. |
 
-### Sales Invoice Endpoints
-
-| Method | Endpoint URL | Access | Description |
-| --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/sales-invoices?query={query}` | Admin, Staff | Search sales invoices. |
-| GET | `http://localhost:5223/api/sales-invoices/me` | Customer | List the logged-in customer's sales invoices. |
-| GET | `http://localhost:5223/api/sales-invoices/{salesInvoiceId}` | Admin, Staff, Customer owner | Get one sales invoice by ID. |
-| POST | `http://localhost:5223/api/sales-invoices` | Admin, Staff | Create a sales invoice. |
-| POST | `http://localhost:5223/api/sales-invoices/from-part-request/{partRequestId}` | Admin, Staff | Create a sales invoice directly from a part request. |
-
-### Service Appointment Endpoints
+### Feature 6: Staff can register new customers with vehicle details
 
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/service-appointments/me` | Customer | List the logged-in customer's service appointments. |
-| POST | `http://localhost:5223/api/service-appointments/me` | Customer | Book a physical vehicle service appointment. |
-| PUT | `http://localhost:5223/api/service-appointments/me/{serviceAppointmentId}/cancel` | Customer | Cancel a pending or confirmed appointment. |
-| GET | `http://localhost:5223/api/service-appointments?query={query}&status={status}&date={date}` | Admin, Staff | Search and filter service appointments. |
-| GET | `http://localhost:5223/api/service-appointments/{serviceAppointmentId}` | Admin, Staff, Customer owner | Get one service appointment by ID. |
-| PUT | `http://localhost:5223/api/service-appointments/{serviceAppointmentId}/status` | Admin, Staff | Confirm, start, complete, reject, cancel, or mark an appointment as no-show. |
+| POST | `/api/auth/customers` | Admin, Staff | Register customer account from staff/admin side. |
+| POST | `/api/customer-vehicles/customer/{customerId}` | Admin, Staff | Add customer vehicle details (can be done at registration time or later). |
+| GET | `/api/customer-vehicles/customer/{customerId}` | Admin, Staff | View registered vehicles of selected customer. |
 
-### Booking Invoice Endpoints
+### Feature 7: Staff can sell vehicle parts and create sales invoices
 
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/booking-invoices?query={query}` | Admin, Staff | Search service booking invoices by invoice, appointment, service, customer, or vehicle. |
-| GET | `http://localhost:5223/api/booking-invoices/me` | Customer | List the logged-in customer's service booking invoices. |
-| GET | `http://localhost:5223/api/booking-invoices/{bookingInvoiceId}` | Admin, Staff, Customer owner | Get one service booking invoice by ID. |
-| POST | `http://localhost:5223/api/booking-invoices` | Admin, Staff | Create one invoice for a completed service appointment. |
+| POST | `/api/sales-invoices` | Admin, Staff | Create sales invoice with part items. |
+| POST | `/api/sales-invoices/from-part-request/{partRequestId}` | Admin, Staff | Create sales invoice directly from customer part request. |
+| GET | `/api/sales-invoices?query={query}` | Admin, Staff | Search sales invoices. |
+| GET | `/api/sales-invoices/{salesInvoiceId}` | Admin, Staff, Customer owner | View one sales invoice. |
 
-### Review Endpoints
-
-| Method | Endpoint URL | Access | Description |
-| --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/reviews/approved` | Public | List approved reviews for public display. |
-| GET | `http://localhost:5223/api/reviews?query={query}&status={status}` | Admin, Staff | Search/filter all reviews. |
-| GET | `http://localhost:5223/api/reviews/me` | Customer | List the logged-in customer's reviews. |
-| POST | `http://localhost:5223/api/reviews` | Customer | Create a new review. |
-| GET | `http://localhost:5223/api/reviews/{reviewId}` | Admin, Staff, Customer owner | Get one review by ID. |
-| PUT | `http://localhost:5223/api/reviews/{reviewId}/status` | Admin, Staff | Approve/reject or otherwise update review status. |
-
-### Customer Report Endpoints
+### Feature 8: Staff can view customer details, history, and vehicle info
 
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/customer-reports?from={date}&to={date}&reportType={Combined\|SalesOnly\|ServicesOnly}&query={query}` | Admin, Staff | Generate customer reports for best clients, regulars, pending credits, parts sales, and services. |
-| GET | `http://localhost:5223/api/customer-reports/requests?status={status}` | Admin, Staff | List customer report requests. |
-| PUT | `http://localhost:5223/api/customer-reports/requests/{requestId}/complete` | Admin, Staff | Mark a customer report request as prepared and notify the customer. |
-| GET | `http://localhost:5223/api/customer-reports/requests/me` | Customer | List the logged-in customer's report requests. |
-| POST | `http://localhost:5223/api/customer-reports/requests/me` | Customer | Request a sales-only, services-only, or combined report from staff. |
+| GET | `/api/customer-vehicles/customers?query={query}` | Admin, Staff | Search/view customer basic profile list. |
+| GET | `/api/customer-vehicles/customer/{customerId}` | Admin, Staff | View selected customer vehicles. |
+| GET | `/api/customer-vehicles/search?query={query}` | Admin, Staff | Search vehicles and linked customer info. |
+| GET | `/api/sales-invoices?query={query}` | Admin, Staff | View customer parts purchase history via invoices. |
+| GET | `/api/booking-invoices?query={query}` | Admin, Staff | View customer service billing history. |
+| GET | `/api/service-appointments?query={query}&status={status}&date={date}` | Admin, Staff | View customer appointment/service history. |
 
-### Financial Report Endpoints
-
-| Method | Endpoint URL | Access | Description |
-| --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/financial-reports/summary?from={date}&to={date}&granularity={Daily\|Weekly\|Monthly}` | Admin | Generate financial summary reports. |
-
-### Admin Insight Endpoints
+### Feature 9: Staff can generate customer-related reports (regulars, high spenders, pending credits)
 
 | Method | Endpoint URL | Access | Description |
 | --- | --- | --- | --- |
-| GET | `http://localhost:5223/api/admin/insights/overdue-credits?take={1-100}` | Admin | List top overdue-credit customers for follow-up/reminders. |
+| GET | `/api/customer-reports?from={date}&to={date}&reportType={Combined\|SalesOnly\|ServicesOnly}&query={query}` | Admin, Staff | Generate customer analytics including best clients, regular clients, and pending-credit groups. |
+| GET | `/api/customer-reports/requests?status={status}` | Admin, Staff | View report requests sent by customers. |
+| PUT | `/api/customer-reports/requests/{requestId}/complete` | Admin, Staff | Mark requested report as completed and notify customer. |
+
+### Feature 10: Staff can search customers by vehicle number, phone, ID, or name
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `/api/customer-vehicles/search?query={query}` | Admin, Staff | Search by vehicle number plus customer fields. |
+| GET | `/api/customer-vehicles/customers?query={query}` | Admin, Staff | Search customers by name, phone, email, or customer ID. |
+
+### Feature 11: Staff can send invoices via email to customers
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| POST | `/api/sales-invoices` | Admin, Staff | Creates sales invoice and system attempts invoice email automatically (`EmailSent` in response). |
+| POST | `/api/booking-invoices` | Admin, Staff | Creates service invoice and system attempts invoice email automatically (`EmailSent` in response). |
+
+### Feature 12: Customers can self-register and manage profile & vehicle details
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| POST | `/api/auth/register/customer` | Public | Customer self-registration. |
+| GET | `/api/profile/me` | Authenticated user | View own profile details. |
+| PUT | `/api/profile/me` | Authenticated user | Update own profile details. |
+| POST | `/api/profile/complete-setup` | Authenticated user | Complete account setup. |
+| GET | `/api/customer-vehicles/me` | Customer | View own vehicles. |
+| POST | `/api/customer-vehicles/me` | Customer | Add own vehicle. |
+| PUT | `/api/customer-vehicles/me/{vehicleId}` | Customer | Update own vehicle. |
+| DELETE | `/api/customer-vehicles/me/{vehicleId}` | Customer | Delete own vehicle. |
+
+### Feature 13: Customers can book appointments, request unavailable parts, and review services
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| POST | `/api/service-appointments/me` | Customer | Book service appointment. |
+| GET | `/api/service-appointments/me` | Customer | View own appointments. |
+| PUT | `/api/service-appointments/me/{serviceAppointmentId}/cancel` | Customer | Cancel own appointment. |
+| POST | `/api/part-requests/me` | Customer | Request unavailable part. |
+| GET | `/api/part-requests/me` | Customer | View own part requests. |
+| PUT | `/api/part-requests/me/{partRequestId}/cancel` | Customer | Cancel own part request. |
+| POST | `/api/reviews` | Customer | Submit service review. |
+| GET | `/api/reviews/me` | Customer | View own reviews. |
+
+### Feature 14: Customers can view their purchase/service history
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `/api/sales-invoices/me` | Customer | View own parts purchase history. |
+| GET | `/api/booking-invoices/me` | Customer | View own service invoice history. |
+| GET | `/api/service-appointments/me` | Customer | View own service appointment history. |
+| GET | `/api/part-requests/me` | Customer | View own unavailable-part request history. |
+
+### Feature 15: System automatically notifies Admin for low stock (<10) and sends overdue credit reminders after 1 month
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| GET | `/api/notifications/me` | Authenticated user | View system notifications (includes low-stock alerts for Admin and overdue credit reminders for Customers). |
+| GET | `/api/admin/insights/overdue-credits?take={1-100}` | Admin | View overdue-credit customers for follow-up. |
+
+### Feature 16: Loyalty Program (10% discount above 5000 single purchase)
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| POST | `/api/sales-invoices` | Admin, Staff | Auto-applies 10% discount when subtotal > 5000 (`DiscountAmount`, `DiscountReason`). |
+| POST | `/api/sales-invoices/from-part-request/{partRequestId}` | Admin, Staff | Same loyalty discount logic for invoice-from-request flow. |
+
+## AI Service Related Endpoints
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| POST | `/api/vehicle-health/vehicles/{vehicleId}/analyze` | Customer owner, Admin, Staff | Analyze vehicle and persist AI prediction (`forceRefresh` request body option). |
+| GET | `/api/vehicle-health/vehicles/{vehicleId}/latest` | Customer owner, Admin, Staff | Get latest vehicle AI prediction. |
+| GET | `/api/vehicle-health/vehicles/{vehicleId}/history?take={1-50}` | Customer owner, Admin, Staff | Get prediction history for the vehicle. |
+
+## Common Auth & Utility Endpoints
+
+| Method | Endpoint URL | Access | Description |
+| --- | --- | --- | --- |
+| POST | `/api/auth/login` | Public | Login endpoint. |
+| GET | `/api/auth/me` | Authenticated user | Get currently logged-in user info. |
+| POST | `/api/uploads/profile-image` | Authenticated user | Upload profile image. |
+| POST | `/api/uploads/vehicle-image` | Authenticated user | Upload vehicle image. |
+| POST | `/api/profile/password-change-code` | Authenticated user | Send password change verification code. |
+| PUT | `/api/profile/password` | Authenticated user | Change password with verification code. |
+| PUT | `/api/notifications/{notificationId}/read` | Authenticated user | Mark one notification as read. |
+| PUT | `/api/notifications/read-all` | Authenticated user | Mark all notifications as read. |
+| GET | `/api/reviews/approved` | Public | Get approved reviews for public display. |
 
 ## EF Core Commands
 

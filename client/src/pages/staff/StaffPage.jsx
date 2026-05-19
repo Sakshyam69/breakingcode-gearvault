@@ -1,10 +1,10 @@
 import { useLocation } from 'react-router-dom'
 import { VendorManagement } from '../../components/admin/VendorManagement'
 import { StaffCustomerVehicleManagement } from '../../components/common/CustomerVehicleWorkspace'
+import { VehicleAiServicesWorkspace } from '../../components/common/VehicleAiServicesWorkspace'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { staffSidebarMenu } from '../../components/dashboard/menus/staffSidebarMenu'
 import { SettingsWorkspace } from '../../components/dashboard/SettingsWorkspace'
-import { UnderDevelopment } from '../../components/dashboard/UnderDevelopment'
 import { CustomerRegistration } from '../../components/staff/CustomerRegistration'
 import { SalesInvoiceManagement } from '../../components/staff/SalesInvoiceManagement'
 import { StaffCustomerReportGenerator } from '../../components/staff/StaffCustomerReportGenerator'
@@ -18,6 +18,11 @@ const staffPages = {
     title: 'Staff Dashboard',
     subtitle: 'Staff tools for customers, invoices, bookings, and counter operations.',
     content: <DashboardStaff />,
+  },
+  '/staff/ai-services': {
+    title: 'AI Services',
+    subtitle: 'Analyze any customer vehicle, generate predictions, and review AI history.',
+    content: <VehicleAiServicesWorkspace scope="staff" />,
   },
   '/staff/customers': {
     title: 'Customers',

@@ -1,4 +1,5 @@
 import {
+  Activity,
   CalendarCheck,
   LayoutDashboard,
   BarChart3,
@@ -21,5 +22,6 @@ export const staffSidebarMenu = [
   { label: 'Bookings', to: '/staff/bookings', icon: CalendarCheck },
   { label: 'Reviews', to: '/staff/reviews', icon: MessageSquare },
   { label: 'Reports', to: '/staff/reports', icon: BarChart3 },
+  { label: 'AI Services', to: '/staff/ai-services', icon: Activity },
   { label: 'Settings', to: '/staff/settings', icon: Settings },
 ]

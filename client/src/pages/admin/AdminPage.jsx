@@ -4,6 +4,7 @@ import { PurchaseInvoiceManagement } from '../../components/admin/PurchaseInvoic
 import { StaffManagement } from '../../components/admin/StaffManagement'
 import { AdminFinancialReports } from '../../components/admin/AdminFinancialReports'
 import { VendorManagement } from '../../components/admin/VendorManagement'
+import { VehicleAiServicesWorkspace } from '../../components/common/VehicleAiServicesWorkspace'
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 import { adminSidebarMenu } from '../../components/dashboard/menus/adminSidebarMenu'
 import { SettingsWorkspace } from '../../components/dashboard/SettingsWorkspace'
@@ -14,6 +15,11 @@ const adminPages = {
     title: 'Admin Dashboard',
     subtitle: 'Admin tools for inventory, vendors, staff, invoices, reports, and settings.',
     content: <DashboardAdmin />,
+  },
+  '/admin/ai-services': {
+    title: 'AI Services',
+    subtitle: 'Analyze all customer vehicles, monitor AI predictions, and review complete history.',
+    content: <VehicleAiServicesWorkspace scope="admin" />,
   },
   '/admin/inventory': {
     title: 'Inventory',

@@ -28,6 +28,8 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<CustomerVehicle> CustomerVehicles => Set<CustomerVehicle>();
 
+    public DbSet<VehicleHealthPrediction> VehicleHealthPredictions => Set<VehicleHealthPrediction>();
+
     public DbSet<CustomerCreditAccount> CustomerCreditAccounts => Set<CustomerCreditAccount>();
 
     public DbSet<CustomerCreditTransaction> CustomerCreditTransactions => Set<CustomerCreditTransaction>();
@@ -508,6 +510,54 @@ public sealed class AppDbContext : DbContext
             entity.HasIndex(vehicle => vehicle.IsPrimary);
             entity.HasIndex(vehicle => vehicle.Make);
             entity.HasIndex(vehicle => vehicle.Model);
+        });
+
+        modelBuilder.Entity<VehicleHealthPrediction>(entity =>
+        {
+            entity.ToTable("VehicleHealthPredictions");
+            entity.HasKey(prediction => prediction.VehicleHealthPredictionId);
+
+            entity.Property(prediction => prediction.RiskLevel)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(prediction => prediction.PredictedFailuresJson)
+                .HasColumnType("text")
+                .IsRequired();
+
+            entity.Property(prediction => prediction.RecommendedPartsJson)
+                .HasColumnType("text")
+                .IsRequired();
+
+            entity.Property(prediction => prediction.Urgency)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(prediction => prediction.Why)
+                .HasMaxLength(2000)
+                .IsRequired();
+
+            entity.Property(prediction => prediction.Disclaimer)
+                .HasMaxLength(1000)
+                .IsRequired();
+
+            entity.Property(prediction => prediction.ModelUsed)
+                .HasMaxLength(120)
+                .IsRequired();
+
+            entity.Property(prediction => prediction.GeneratedAt)
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            entity.HasOne(prediction => prediction.Vehicle)
+                .WithMany()
+                .HasForeignKey(prediction => prediction.CustomerVehicleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(prediction => prediction.CustomerVehicleId);
+            entity.HasIndex(prediction => prediction.GeneratedAt);
+            entity.HasIndex(prediction => prediction.RiskLevel);
+            entity.HasIndex(prediction => prediction.Urgency);
         });
 
         modelBuilder.Entity<CustomerCreditAccount>(entity =>

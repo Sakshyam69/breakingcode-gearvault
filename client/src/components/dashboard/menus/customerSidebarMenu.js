@@ -1,4 +1,5 @@
 import {
+  Activity,
   CalendarCheck,
   Car,
   History,
@@ -15,5 +16,6 @@ export const customerSidebarMenu = [
   { label: 'Part Requests', to: '/customer/part-requests', icon: PackageSearch },
   { label: 'Reviews', to: '/customer/reviews', icon: MessageSquare },
   { label: 'History', to: '/customer/history', icon: History },
+  { label: 'AI Services', to: '/customer/ai-services', icon: Activity },
   { label: 'Settings', to: '/customer/settings', icon: Settings },
 ]

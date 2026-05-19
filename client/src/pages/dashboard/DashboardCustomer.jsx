@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  Activity,
   CalendarCheck,
   Car,
   Clock,
@@ -125,11 +126,12 @@ export function DashboardCustomer() {
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <PanelTitle icon={Wrench} kicker="Quick actions" title="What do you want to do next?" />
-          <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-auto lg:grid-cols-4">
+          <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-auto lg:grid-cols-5">
             <ActionButton icon={Plus} label="Add vehicle" onClick={() => navigate('/customer/vehicles')} />
             <ActionButton icon={CalendarCheck} label="Book service" onClick={() => navigate('/customer/bookings')} />
             <ActionButton icon={PackageSearch} label="Request part" onClick={() => navigate('/customer/part-requests')} />
             <ActionButton icon={FileText} label="Request report" onClick={() => navigate('/customer/settings')} />
+            <ActionButton icon={Activity} label="AI services" onClick={() => navigate('/customer/ai-services')} />
           </div>
         </div>
       </section>

@@ -4,7 +4,7 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Servers", "Servers", "{769B9289-B2AF-0079-2183-40A0D5B6CA35}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Servers", "Servers\Servers\Servers.csproj", "{5220E136-0BC6-BD08-DAEF-198E56F27765}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Servers", "Servers\Servers.csproj", "{5220E136-0BC6-BD08-DAEF-198E56F27765}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

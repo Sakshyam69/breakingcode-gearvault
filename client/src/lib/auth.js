@@ -217,6 +217,22 @@ export async function deleteCustomerVehicle(vehicleId) {
   })
 }
 
+export async function analyzeVehicleHealth(vehicleId, { forceRefresh = false } = {}) {
+  return sendAuthenticatedRequest(`/api/vehicle-health/vehicles/${vehicleId}/analyze`, {
+    method: 'POST',
+    body: JSON.stringify({ forceRefresh }),
+  })
+}
+
+export async function getLatestVehicleHealthPrediction(vehicleId) {
+  return sendAuthenticatedRequest(`/api/vehicle-health/vehicles/${vehicleId}/latest`)
+}
+
+export async function getVehicleHealthPredictionHistory(vehicleId, take = 10) {
+  const normalizedTake = Number.isFinite(Number(take)) ? Math.max(1, Math.min(50, Number(take))) : 10
+  return sendAuthenticatedRequest(`/api/vehicle-health/vehicles/${vehicleId}/history?take=${encodeURIComponent(normalizedTake)}`)
+}
+
 export async function getMyPartRequests() {
   return sendAuthenticatedRequest('/api/part-requests/me')
 }

@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom'
 import { CustomerVehicleManagement } from '../../components/common/CustomerVehicleWorkspace'
+import { VehicleAiServicesWorkspace } from '../../components/common/VehicleAiServicesWorkspace'
 import { CustomerInvoiceHistory } from '../../components/customer/CustomerInvoiceHistory'
 import { CustomerPartRequests } from '../../components/customer/CustomerPartRequests'
 import { CustomerReportRequests } from '../../components/customer/CustomerReportRequests'
@@ -15,6 +16,11 @@ const customerPages = {
     title: 'Customer Dashboard',
     subtitle: 'Customer tools for profile, vehicles, bookings, part requests, and history.',
     content: <DashboardCustomer />,
+  },
+  '/customer/ai-services': {
+    title: 'AI Services',
+    subtitle: 'Analyze your vehicle health, view predicted issues, recommended parts, and your AI history.',
+    content: <VehicleAiServicesWorkspace scope="customer" />,
   },
   '/customer/vehicles': {
     title: 'Vehicles',

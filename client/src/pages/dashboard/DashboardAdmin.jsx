@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, Boxes, Mail, ReceiptText, Truck, Users, WalletCards } from 'lucide-react'
+import { Activity, AlertTriangle, Boxes, Mail, ReceiptText, Truck, Users, WalletCards } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { getAdminOverdueCredits, getParts, getPurchaseInvoices, getUsers, getVendors } from '../../lib/auth'
 
 export function DashboardAdmin() {
+  const navigate = useNavigate()
   const [users, setUsers] = useState([])
   const [vendors, setVendors] = useState([])
   const [parts, setParts] = useState([])
@@ -148,6 +150,33 @@ export function DashboardAdmin() {
         <StatCard icon={WalletCards} label="Purchase value" value={formatMoney(overview.purchaseTotal)} note="From active invoices" tone="green" />
         <StatCard icon={Truck} label="Vendors" value={vendors.length} note="Active supplier records" />
         <StatCard icon={Users} label="Users" value={users.length} note={`${overview.staffCount} staff, ${overview.customerCount} customers`} />
+      </section>
+
+      <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-black uppercase text-[var(--primary)]">Operations</p>
+            <h2 className="mt-1 text-lg font-black text-slate-950">Admin quick actions</h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-black text-white transition hover:bg-[var(--primary-hover)]"
+              type="button"
+              onClick={() => navigate('/admin/ai-services')}
+            >
+              <Activity size={18} />
+              AI services
+            </button>
+            <button
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+              type="button"
+              onClick={() => navigate('/admin/reports')}
+            >
+              <ReceiptText size={18} />
+              View reports
+            </button>
+          </div>
+        </div>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(360px,0.8fr)]">

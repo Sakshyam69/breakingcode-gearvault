@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Npgsql;
 using Servers.Authentication;
@@ -68,6 +69,7 @@ builder.Services.AddCors(options =>
 builder.Services.Configure<AuthTokenOptions>(builder.Configuration.GetSection(AuthTokenOptions.SectionName));
 builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection(CloudinaryOptions.SectionName));
 builder.Services.Configure<BrevoEmailOptions>(builder.Configuration.GetSection(BrevoEmailOptions.SectionName));
+builder.Services.Configure<DeepSeekOptions>(builder.Configuration.GetSection(DeepSeekOptions.SectionName));
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(GetDatabaseConnectionString(builder.Configuration));
@@ -76,6 +78,12 @@ builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 builder.Services.AddSingleton<IAuthTokenService, HmacAuthTokenService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<ICloudinaryService, CloudinaryService>();
+builder.Services.AddHttpClient<IVehicleHealthAiService, DeepSeekVehicleHealthAiService>((serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<IOptions<DeepSeekOptions>>().Value;
+    var timeoutSeconds = options.TimeoutSeconds <= 0 ? 30 : options.TimeoutSeconds;
+    client.Timeout = TimeSpan.FromSeconds(Math.Clamp(timeoutSeconds, 5, 180));
+});
 builder.Services.AddScoped<IEmailService, BrevoEmailService>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -174,6 +182,7 @@ static string NormalizeEnvKey(string key)
     const string authTokenPrefix = "AuthToken_";
     const string cloudinaryPrefix = "Cloudinary_";
     const string brevoPrefix = "Brevo_";
+    const string deepSeekPrefix = "DeepSeek_";
 
     if (key.StartsWith(authTokenPrefix, StringComparison.Ordinal))
     {
@@ -188,6 +197,11 @@ static string NormalizeEnvKey(string key)
     if (key.StartsWith(brevoPrefix, StringComparison.Ordinal))
     {
         return $"Brevo__{NormalizeBrevoKey(key[brevoPrefix.Length..])}";
+    }
+
+    if (key.StartsWith(deepSeekPrefix, StringComparison.Ordinal))
+    {
+        return $"DeepSeek__{key[deepSeekPrefix.Length..]}";
     }
 
     if (key is "BrandLogoUrl" or "BrandHeroImageUrl")

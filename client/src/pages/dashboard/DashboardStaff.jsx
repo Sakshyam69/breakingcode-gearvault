@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, BarChart3, Clock, Download, Package, Wrench } from 'lucide-react'
+import { Activity, AlertTriangle, BarChart3, Clock, Download, Package, Wrench } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { getCustomerReportRequests, getCustomerReports } from '../../lib/auth'
 
@@ -83,14 +83,24 @@ export function DashboardStaff() {
             <p className="text-xs font-black uppercase text-[var(--primary)]">Reports</p>
             <h2 className="mt-1 text-lg font-black text-slate-950">Customer report export</h2>
           </div>
-          <button
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-black text-white transition hover:bg-[var(--primary-hover)]"
-            type="button"
-            onClick={() => navigate('/staff/reports')}
-          >
-            <Download size={18} />
-            Export report
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-black text-white transition hover:bg-[var(--primary-hover)]"
+              type="button"
+              onClick={() => navigate('/staff/reports')}
+            >
+              <Download size={18} />
+              Export report
+            </button>
+            <button
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+              type="button"
+              onClick={() => navigate('/staff/ai-services')}
+            >
+              <Activity size={18} />
+              AI services
+            </button>
+          </div>
         </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
